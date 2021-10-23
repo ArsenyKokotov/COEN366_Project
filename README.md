@@ -11,6 +11,7 @@ The server needs to keep track of the client data persistently so idk maybe an s
 
 # Server Design
 - Port 3366
+- Runs as a daemon
 - Accepts (or refuses) clients registrations
 - Accepts (or refuses) client deregistrations
 - Accepts (or refuses) file list publications
@@ -23,6 +24,7 @@ The server needs to keep track of the client data persistently so idk maybe an s
 
 # Client Design
 - Send registration requests to server
+- Runs as a daemon, plus a command line to the client/peer daemon
 - Keep track of local files (all in one folder)
 - Publish info about local files to server (tries several times before giving up)
 - Send request to remove file from server list (if deleted locally? why not just publish new list of files?)
@@ -32,3 +34,6 @@ The server needs to keep track of the client data persistently so idk maybe an s
 - (Mobility) updates IP / UDP socket / TCP socket if they have changed
 - Communicates with server over UDP
 - Communicates with other clients (peers) over TCP
+
+
+
