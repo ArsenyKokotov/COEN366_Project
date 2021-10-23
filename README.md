@@ -20,6 +20,7 @@ The server needs to keep track of the client data persistently so idk maybe an s
 - Respond (or refuse) to searches of file names
 - Communicates with clients over UDP
 
+
 # Client Design
 - Send registration requests to server
 - Keep track of local files (all in one folder)
@@ -28,5 +29,6 @@ The server needs to keep track of the client data persistently so idk maybe an s
 - Send request to server to get information about the files available from other peers
 - Downloads files from peers
 - Sends files on request to peers
+- (Mobility) updates IP / UDP socket / TCP socket if they have changed
 - Communicates with server over UDP
 - Communicates with other clients (peers) over TCP
