@@ -56,8 +56,23 @@ Client is also a server and not just a single executable python script because w
 <br> If you know file and you knwo user who have this file, set up TCP connection and transfer that file in chinks of 200 characters. Will need a specific function to do that, cannot just use sendall(). So we need to describe a transfer protocol ourselves (easier than it sounds actually). 
 <br>
 <br>
-<b> Task 5: Making a GUI
+<b> Task 5: Making a GUI </b>
 <br> Only if we want to. 
+
+<br>
+<br>
+<b> DATABASE SERVER </b>
+Two databases:
+<ul>
+  <li> Client database (contain client info: name, IP, sockets)</li>
+  <li> File database (contain file names and name of client that hold that file)
+</ul>
+
+<br>
+<br>
+<b> DATABASE CLIENT </b>
+<br>
+Single database that contains files. Could just be a folder with text documetns, but we have to figure out how to put text docs inside that folder such that it automatically sends all the required messages to server.
 
  
 
