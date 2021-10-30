@@ -37,9 +37,12 @@ Two databases:
 <br>
 <b> DATABASE CLIENT </b>
 <br>
-Single database that contains files. Could just be a folder with text documetns, but we have to figure out how to put text docs inside that folder such that it automatically sends all the required messages to server.
+Single database that contains files. Could just be a folder with text documents, but we have to figure out how to put text docs inside that folder such that it automatically sends all the required messages to server.
 
 <br>
+<br>
+<br>
+
 <b>Task 1:</b> <u>Client-Server registration/derigistration:</u>
 <ul>
   <li>Client must register with server before sending any requests.
