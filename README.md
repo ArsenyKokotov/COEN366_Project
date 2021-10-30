@@ -8,6 +8,7 @@
 <b>Task 0:</b> <u>Client-Server registration/derigistration:</u> 
 <br>(Must be done in the begining by all, other steps can be done individually by teammates and then merged together)
 <br>
+<br>
 <u>Create server.py</u>
 <ul>
   <li>Must either use threads or select function to allow multiple clients.
