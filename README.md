@@ -28,6 +28,7 @@ Client is also a server and not just a single executable python script because w
   <li>Client must register with server before sending any requests.
   <li>Server will then put into its database and send an ACK to client. 
   <li>If registration is for some reason denied (e.g.: invalid inputs or user already exists) then server sends an error message to client.
+    <li> Client must be able to update their info (IP, TCP/UDP ports) and receive either an ACK or an error.
   <li> Use JSON strings to send messages
 </ul>
 
@@ -38,10 +39,21 @@ Client is also a server and not just a single executable python script because w
     <li> When recieving the previous message, server send ACK to client.
     <li> If info message is denied because of some error, then server sends an error message to client.
     <li> If client remove file from its database then it sends a message to server, server must either ACk or reply with an error message.
+    <li> Use JSON strings to send messages
 </ul>
 
 <br>
 <b>Task 3:</b> <u>Retrieving information from the server:</u>
+<br> Basically searching for info about clients and files (do they exist or not), no file transfer in this step
+
+<br>
+<b>Task 4:</b> <u>File transfer between peers:</u>
+<br> If you know file and you knwo user who have this file, set up TCP connection and transfer that file in chinks of 200 characters. Will need a specific function to do that, cannot just use sendall(). So we need to describe a transfer protocol ourselves (easier than it sounds actually). 
+
+<br>
+<b> Task 5: Making a GUI
+<br> Only if we want to. 
+
  
 
 
