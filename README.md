@@ -2,18 +2,23 @@
 
 <h3>Task Plan:</h3>
 <u>Create server.py</u>
--must either use threads or select function to allow multiple clients
--must use UDP sockets
--must contain a link to a database
--must be able to receive and send messages from/to clients
+<ul>
+  <li>must either use threads or select function to allow multiple clients
+  <li>must use UDP sockets
+  <li>must contain a link to a database
+  <li>must be able to receive and send messages from/to clients
+</ul>
 
 <u>Create a client.py</u>
--must use UDP soockets to communicate with server
--must use TCP sockets to communicate with peers
+<ul>
+  <li>must use UDP soockets to communicate with server
+  <li>must use TCP sockets to communicate with peers
+</ul>
 
 
 <b>Step 1</b> <u>Client-Server registration/derigistration:</u>
--Client must register with server before sending any requests: To register client must send a message containing the following to the server: 
+<br>
+Client must register with server before sending any requests: To register client must send a message containing the following to the server: 
 <ul>
   <li>REGISTER</li>
   <li>RQ#</li>
