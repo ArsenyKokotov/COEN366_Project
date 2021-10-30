@@ -1,50 +1,45 @@
 # COEN366_Project
 
 <h3>Task Plan:</h3>
+<br>
+<b>Task 0:</b> <u>Client-Server registration/derigistration:</u> (Must be done in the begining by all, other steps can be done individually by teammates and then merged together)
+
 <u>Create server.py</u>
 <ul>
-  <li>must either use threads or select function to allow multiple clients
-  <li>must use UDP sockets
-  <li>must contain a link to a database
-  <li>must be able to receive and send messages from/to clients
+  <li>Must either use threads or select function to allow multiple clients.
+  <li>Must use UDP sockets.
+  <li>Must contain a link to a database (database will be described in a following section).
+  <li>Must be able to receive and send messages from/to clients.
 </ul>
 
 <u>Create a client.py</u>
+Client is also a server and not just a single executable python script because we want to be able to mantain communication between clients.  
 <ul>
-  <li>must use UDP soockets to communicate with server
-  <li>must use TCP sockets to communicate with peers
+  <li>Must use UDP soockets to communicate with server.
+  <li>Must use TCP sockets to communicate with peers.
+  <li>Must have a database containing files.
 </ul>
 
-
-<b>Step 1</b> <u>Client-Server registration/derigistration:</u>
 <br>
-Client must register with server before sending any requests: To register client must send a message containing the following to the server: 
+<b>Task 1:</b> <u>Client-Server registration/derigistration:</u>
 <ul>
-  <li>REGISTER</li>
-  <li>RQ#</li>
-  <li>Name</li>
-  <li>IP Address</li>
-  <li>UDP socket#</li>
-  <li>TCP socket#</li>
-</ul>
-Server will then put into its database and send a reply to client. The reply will contain the following:
-<ul>
-  <li>REGISTERED</li>
-   <li>RQ#</li>
-</ul>
-If registration is for some reason denied (e.g.: invalid inputs or user already exists) then server sends the following reply to client:
-<ul>
-  <li>REGISTER-DENIED</li>
-   <li>RQ#</li>
-   <li>Reason</li>
+  <li>Client must register with server before sending any requests.
+  <li>Server will then put into its database and send an ACK to client. 
+  <li>If registration is for some reason denied (e.g.: invalid inputs or user already exists) then server sends an error message to client.
+  <li> Use JSON strings to send messages
 </ul>
 
+<br>
+<b>Task 2:</b> <u>Publishing file related information:</u>
+<ul>
+    <li> When client is registered with server, client can now send information about its files to the server.
+    <li> When recieving the previous message, server send ACK to client.
+    <li> If info message is denied because of some error, then server sends an error message to client.
+    <li> If client remove file from its database then it sends a message to server, server must either ACk or reply with an error message.
+</ul>
+
+<br>
+<b>Task 3:</b> <u>Retrieving information from the server:</u>
+ 
 
 
-Server communication
-- python client and server
-- json data exchange format
-- represent the fundamental parts of the protocol as classes/objects in python (each kind of message, a client class, a server class, etc)
-- Design for LAN only (so only need to keep track of LAN IPs)
-- No auth / GUI (the bonus marks) 
-The server needs to keep track of the client data persistently so idk maybe an sqlite db or some other DB (maybe nosql of some kind since there is some variability in data stored for each client)
