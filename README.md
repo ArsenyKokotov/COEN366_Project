@@ -14,6 +14,7 @@
 </ul>
 
 <u>Create a client.py</u>
+<br>
 Client is also a server and not just a single executable python script because we want to be able to mantain communication between clients.  
 <ul>
   <li>Must use UDP soockets to communicate with server.
