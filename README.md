@@ -5,7 +5,7 @@
 <br>
 <h3>Task Plan:</h3>
 <br>
-<b>Task 0:</b> <u>Client-Server registration/derigistration:</u> 
+<b>Task 0:</b> <u>Create Client-Server:</u> 
 <br>(Must be done in the begining by all, other steps can be done individually by teammates and then merged together)
 <br>
 <br>
