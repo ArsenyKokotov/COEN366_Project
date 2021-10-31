@@ -87,7 +87,7 @@ def search_file(data):
 def handle_client():
     print("[NEW CONNECTION] {addr} connected.")
     # depending on type
-    # possible types: REGISTER, DE-REGISTER, PUBLISH, REMOVE, RETRIEVE-ALL, RETRIEVE-INFOT, SEARCH-FILE
+    # possible types: REGISTER, DE-REGISTER, PUBLISH, REMOVE, RETRIEVE-ALL, RETRIEVE-INFOT, SEARCH-FILE, UPDATE CONTACT
     # execute appropriate function 
 
 
