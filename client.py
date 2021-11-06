@@ -3,6 +3,8 @@ import threading
 import random
 import string
 import json
+import os
+
 
 PORT_UDP = 5060
 PORT_TCP = 5070
@@ -46,20 +48,49 @@ def server_request():
         json_request['IP']=HOST
         json_request['UDP_socket']=PORT_UDP
         json_request['TCP_socket']=PORT_TCP
+
     elif service_type == "DE-REGISTER":
         name=input("Enter your name: ")
         json_request['name']=name
+
     elif service_type == "PUBLISH":
-        # get list of files
-        # json_request['list of files'] = []
-        pass
+        name=input("Enter your name: ")
+        json_request['name']=name
+        file_list=[]
+        while True:
+            print("To stop adding files, write EXIT")
+            file_name=input("Input name of txt file you want to add (e.g: example.txt) : ")
+            check=os.path.isfile('client_file_storage/' + file_name)
+            if check==True:
+                file_list.append(file_name)
+                print("File " + file_name + " added to publish list")
+            elif file_name=="EXIT":
+                break
+            else:
+                print("File does not exist in your client file storage")
+        json_request['list of files'] = file_list
+
     elif service_type == "REMOVE":
-        # get list of files to remove
-        # json_request['list of files'] = []
-        pass
+        name=input("Enter your name: ")
+        json_request['name']=name
+        file_list=[]
+        while True:
+            print("To stop adding files, write EXIT")
+            file_name=input("Input name of txt file you want to remove (e.g: example.txt) : ")
+            check=os.path.isfile('client_file_storage/' + file_name)
+            if check==True:
+                file_list.append(file_name)
+                print("File " + file_name + " added to removal list")
+            elif file_name=="EXIT":
+                break
+            else:
+                print("File does not exist in your client file storage")
+        json_request['list of files'] = file_list
+
     elif service_type == "RETRIEVE-INFOT":
         peer_name=input("Enter name of peer: ")
         json_request['name']=peer_name
+
     elif service_type == "SEARCH-FILE":
         file_name=input("Enter name of file you're looking for: ")
         json_request['File-name']=file_name
