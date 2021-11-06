@@ -84,22 +84,33 @@ def search_file(data):
     pass
 
 
-def handle_client():
-    print("[NEW CONNECTION] {addr} connected.")
+def handle_client(message, address):
+    print("[NEW CONNECTION]" + address + " connected.")
+
+    print("Received message: " + message)
+    
+    msg="Message Received"
+    bytes_msg=msg.encode()
+
+    end = address.find(",")
+    CLIENT_HOST=address[2:end-1]
+    CLIENT_PORT=address[end+1:-1]
+
+    
+    UDPServerSocket.sendto(bytes_msg, (CLIENT_HOST, int(CLIENT_PORT)))
+
     # depending on type
-    # possible types: REGISTER, DE-REGISTER, PUBLISH, REMOVE, RETRIEVE-ALL, RETRIEVE-INFOT, SEARCH-FILE
+    # possible types: REGISTER, DE-REGISTER, PUBLISH, REMOVE, RETRIEVE-ALL, RETRIEVE-INFOT, SEARCH-FILE, UPDATE CONTACT
     # execute appropriate function 
 
 
 def start():
-    UDPServerSocket.listen()
+    #UDPServerSocket.listen()
     while True:
-        message = UDPServerSocket.recvfrom()
-        # to be modified #####
-        type = message[0]
-        other_data = message[1]
-        #######################
-        thread = threading.Thread(target=handle_client, args=(message, other_data))
+        bytesAddressPair = UDPServerSocket.recvfrom(1024)
+        message = format(bytesAddressPair[0])
+        address = format(bytesAddressPair[1])
+        thread = threading.Thread(target=handle_client, args=(message, address))
         thread.start()
         print(f"[ACTIVE CONNECTIONS] {threading.active_count()-1}" )
 
