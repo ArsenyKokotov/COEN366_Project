@@ -1,5 +1,4 @@
 import mysql.connector
-import database_handler
 
 Registered_Client_db = mysql.connector.connect(
     host="",
@@ -10,7 +9,8 @@ Registered_Client_db = mysql.connector.connect(
 
 # field1:name of client field2:ip_address field3:udp_socket  filed4:tcp_socket
 
-Files_db = mysql.connector.connect(
+Files_db = mysql.connector.connect (
+
 
     host="",
     user="",
