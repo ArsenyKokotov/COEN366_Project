@@ -85,7 +85,7 @@ def publish_files(name, list_of_files):
     # insert each file in the list and name into file db
     # if all is well, return PUBLISHED
     # if name does not exist or something else go bad, return PUBLISH-DENIED and REASON
-    alreadyExistCheck = mycursor_client.execute("SELECT FROM clientDB WHERE name=%s", name)
+    alreadyExistCheck = mycursor_client.execute("SELECT * FROM clientDB WHERE name=%s", name)
     if len(alreadyExistCheck) >= 1:
         values = [[item] for item in list_of_files]
         mycursor_files.execute("INSERT INTO filesDB (name, files) VALUES (%s,%s)", (name, values))
@@ -98,7 +98,7 @@ def remove_files(name, list_of_files):
     # delete files from list of files that are id with name of client
     # if all is well, return REMOVED
     # else return REMOVE-DENIED and Reason
-    alreadyExistCheck = mycursor_client.execute("SELECT FROM clientDB WHERE name=%s", name)
+    alreadyExistCheck = mycursor_client.execute("SELECT * FROM clientDB WHERE name=%s", name)
     if len(alreadyExistCheck) >= 1:
         values = [[item] for item in list_of_files]
         mycursor_files.execute("DELETE FROM filesDB WHERE name=%s", name)
@@ -112,8 +112,7 @@ def retrieve_all():
     # return RETRIEVE and list of list containing the following:
     # List of (Name, IP address, TCP socket#, list of available files)
     # if error return RETRIEVE-ERROR and REASON
-    
-    pass
+    return ["RETRIEVE", ]
 
 
 def retrieve_infot(name):
@@ -126,4 +125,11 @@ def search_file(file_name):
     # find client(s) with this file from file db
     # if success, return SEARCH-FILE and List of (Name, IP address, TCP socket#)
     # else return SEARCH-ERROR and REASON
-    pass
+    clientName = mycursor_files.execute("SELECT name FROM filesDB WHERE file_name = %s ", file_name)
+    if len(clientName) >= 1:
+        name = mycursor_client.execute("SELECT name FROM clientDB WHERE name=%s", clientName)
+        ip_address = mycursor_client.execute("SELECT ip_address FROM clientDB WHERE name=%s", clientName)
+        tcp_socket = mycursor_client.execute("SELECT tcp_socket FROM clientDB WHERE name=%s", clientName)
+        return ["SEARCH FILE", [name, ip_address, tcp_socket]]
+    else:
+        return ["SEARCH-ERROR", "File name does not exist!"]
