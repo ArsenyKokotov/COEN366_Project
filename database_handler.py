@@ -9,8 +9,7 @@ Registered_Client_db = mysql.connector.connect(
 
 # field1:name of client field2:ip_address field3:udp_socket  filed4:tcp_socket
 
-Files_db = mysql.connector.connect (
-
+Files_db = mysql.connector.connect(
 
     host="",
     user="",
@@ -41,7 +40,7 @@ def register_client(name, ip_address, udp_socket, tcp_socket):
     # check if client is already registered, check if the input values are valid, etc
     if check_client(name, ip_address, udp_socket, tcp_socket):
         alreadyExistCheck = mycursor_client.execute("SELECT * FROM clientDB WHERE ip_address =%s",
-                                                    (ip_address,))
+                                                    ip_address)
         if len(alreadyExistCheck) >= 1:
             return ["REGISTER-DENIED", "CLIENT ALREADY EXISTS"]
         else:
@@ -66,7 +65,7 @@ def update_client(name, ip_address, udp_socket, tcp_socket):
     if check_client(name, ip_address, udp_socket, tcp_socket):
         mycursor_client.execute(
             "UPDATE clientDB SET name=%s, ip_address=%s, udp_socket=%s, tcp_socket=%s WHERE ip_address = %s",
-            name, ip_address, udp_socket, tcp_socket)
+            (name, ip_address, udp_socket, tcp_socket))
         return ["UPDATE-CONFIRMED"]
     else:
         return ["UPDATE-DENIED", "Invalid input format type"]
@@ -86,22 +85,34 @@ def publish_files(name, list_of_files):
     # insert each file in the list and name into file db
     # if all is well, return PUBLISHED
     # if name does not exist or something else go bad, return PUBLISH-DENIED and REASON
-
-    pass
+    alreadyExistCheck = mycursor_client.execute("SELECT FROM clientDB WHERE name=%s", name)
+    if len(alreadyExistCheck) >= 1:
+        values = [[item] for item in list_of_files]
+        mycursor_files.execute("INSERT INTO filesDB (name, files) VALUES (%s,%s)", (name, values))
+        return ["PUBLISHED"]
+    else:
+        return ["PUBLISH-DENIED", "Client does not exist!"]
 
 
 def remove_files(name, list_of_files):
     # delete files from list of files that are id with name of client
     # if all is well, return REMOVED
     # else return REMOVE-DENIED and Reason
-    pass
+    alreadyExistCheck = mycursor_client.execute("SELECT FROM clientDB WHERE name=%s", name)
+    if len(alreadyExistCheck) >= 1:
+        values = [[item] for item in list_of_files]
+        mycursor_files.execute("DELETE FROM filesDB WHERE name=%s", name)
+        return ["REMOVED"]
+    else:
+        return ["REMOVE-DENIED", "Client does not exist!"]
 
 
 def retrieve_all():
     # if success
     # return RETRIEVE and list of list containing the following:
     # List of (Name, IP address, TCP socket#, list of available files)
-    # if error return RETRIEVE-ERROR and REASON 
+    # if error return RETRIEVE-ERROR and REASON
+    
     pass
 
 
