@@ -1,5 +1,4 @@
 import mysql.connector
-import database_handler
 
 Registered_Client_db = mysql.connector.connect(
     host="",
