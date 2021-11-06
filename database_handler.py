@@ -8,12 +8,20 @@ Registered_Client_db = mysql.connector.connect(
     database=""
 )
 
+
 Files_db = mysql.connector.connect(
+
+#field1:name of client field2:ip_address field3:udp_socket  filed4:tcp_socket
+
+Files_db = mysql.connector.connect (
+
     host="",
     user="",
     password="",
     database=""
 )
+
+# field1: name of client field2: file name 
 
 
 mycursor_client = Registered_Client_db.cursor()
@@ -33,9 +41,12 @@ def register_client(name, ip_address, udp_socket, tcp_socket):
     pass
 
 def update_client(name, ip_address, udp_socket, tcp_socket):
+
     # Check client connection
     # Update client information
     # Validate information change (correct types)
+    # return UPDATE-CONFIRMED or UPDATE DENIED, REASON
+
     pass
 
 def derigister(name):

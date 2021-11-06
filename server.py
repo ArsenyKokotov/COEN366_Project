@@ -1,6 +1,7 @@
 import socket
 import threading
 import json
+import database_handler as dh
 
 
 PORT = 5050
@@ -8,102 +9,187 @@ HOST = socket.gethostbyname(socket.gethostname())
 UDPServerSocket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 UDPServerSocket.bind((HOST, PORT))
 
-#CREATE DATABASES
-#################
-
-#################
-
 #TASK 1
-def registration(data):
-    # data: RQ#, Name, IP Address, UDP socket#, TCP socket #
-    # insert data into client database
-    # depending on results either send ACK or Error: 
-            # ACK = REGISTERED, RQ#  
-            # Error = REGISTER-DENIED, RQ#, Reason
-    # reply = ACK or Error
-    # addr=(IP Address, UDP socket#)
-    # UDPServerSocket.sendto(reply, addr)
-    pass
+def registration(message, address):
+    
+    response = dh.register_client(message['name'], message['IP'], message['UDP_socket'], message['TCP_socket'])
 
-def derigistration(data):
-    # data: RQ#, Name
-    # either remove from database or ignore message
-    pass
+    reply={}
 
-def update_contact(data):
-    # data: RQ#, Name, IP Address, UDP socket#, TCP socket#
-    # update client database
-    # if updated then reply = UPDATE CONFIRMED, RQ#, Name, IP Address, UDP socket#, TCP socket#
-    # else reply = UPDATE DENIED, RQ#, Name, Reason
-    # addr=(IP Address, UDP socket#)
-    # UDPServerSocket.sendto(reply, addr)
-    pass
+    if response[0] == "REGISTERED":
+        reply['service']=response[0]
+        reply['request_#']=message['request_#']
+    else:
+        reply['service']=response[0]
+        reply['request_#']=message['request_#']
+        reply['reason']=response[1]
+    
+    msg=json.dumps(reply)
+    
+    UDPServerSocket.sendto(msg.encode(), address)
+
+
+def derigistration(message):
+    dh.derigister(message['name'])
+   
+
+def update_contact(message, address):
+    
+    response = dh.update_client(message['name'], message['IP'], message['UDP_socket'], message['TCP_socket'])
+
+    reply={}
+
+    if response[0] == "UPDATE-CONFIRMED":
+        reply['service']=response[0]
+        reply['request_#']=message['request_#']
+        reply['name']=message['name']
+        reply['IP']=message['IP']
+        reply['UDP_socket']=message['UDP_socket']
+        reply['TCP_socket']=message['TCP_socket']
+    else:
+        reply['service']=response[0]
+        reply['request_#']=message['request_#']
+        reply['name']=message['name']
+        reply['reason']=response[1]
+    
+    msg=json.dumps(reply)
+    
+    UDPServerSocket.sendto(msg.encode(), address)
 
 #TASK 2
-def publishing(data):
-    # data: RQ#, Name, List of files, IP Address, UDP socket#
-    # update file database (be careful about not repeating file values)
-    # if updated then reply = PUBLISHED, RQ#
-    # else if error then reply = PUBLISH-DENIED, RQ#, Reason
-    # addr=(IP Address, UDP socket#)
-    # UDPServerSocket.sendto(reply, addr)
-    pass
+def publishing(message, address):
 
-def file_removal(data):
-    # data: RQ#, Name, List of files to remove, IP Address, UDP socket#
-    # update file database
-    # if updated then reply = REMOVED, RQ#
-    # else if error then reply = REMOVE-DENIED, RQ#, Reason
-    # addr=(IP Address, UDP socket#)
-    # UDPServerSocket.sendto(reply, addr)
-    pass
+    response = dh.publish_files(message['name'], message['list of files'])
+
+    reply={}
+
+    if response[0] == "PUBLISHED":
+        reply['service']=response[0]
+        reply['request_#']=message['request_#']
+    else:
+        reply['service']=response[0]
+        reply['request_#']=message['request_#']
+        reply['reason']=response[1]
+    
+    msg=json.dumps(reply)
+    
+    UDPServerSocket.sendto(msg.encode(), address)
+    
+
+def file_removal(message, address):
+    
+    response = dh.remove_files(message['name'], message['list of files'])
+
+    reply={}
+
+    if response[0] == "REMOVED":
+        reply['service']=response[0]
+        reply['request_#']=message['request_#']
+    else:
+        reply['service']=response[0]
+        reply['request_#']=message['request_#']
+        reply['reason']=response[1]
+    
+    msg=json.dumps(reply)
+    
+    UDPServerSocket.sendto(msg.encode(), address) 
 
 #TASK 3
-def retrieve_all(data):
-    # data: RQ#, IP Address, UDP socket#
-    # retrieve client database 
-    # reply = RETRIEVE RQ# List of (Name, IP address, TCP socket#, list of available files)
-    # addr=(IP Address, UDP socket#)
-    # UDPServerSocket.sendto(reply, addr)
-    pass
+def retrieve_all(message, address):
+    
+    response = dh.retrieve_all()
 
-def retrieve_infot(data):
-    # data: RQ#,  Name,  IP Address, UDP socket#
-    # retrieve from client+file databases
-    # if success, reply = RETRIEVE-INFOT, RQ#, Name, IP Address, TCP socket#, List of available files
-    # else if error, reply = RETRIEVE-ERROR, RQ#, Reason
-    # addr=(IP Address, UDP socket#)
-    # UDPServerSocket.sendto(reply, addr)
-    pass
+    reply={}
 
-def search_file(data):
-    # data: RQ#,  File-name, IP Address, UDP socket#
-    # retrieve from client+file database
-    # if success, reply = SEARCH-FILE RQ# List of (Name, IP address, TCP socket#)
-    # else if error, reply = SEARCH-ERROR, RQ#, Reason
-    # addr=(IP Address, UDP socket#)
-    # UDPServerSocket.sendto(reply, addr)
-    pass
+    if response[0] == "RETRIEVE":
+        reply['service']=response[0]
+        reply['request_#']=message['request_#']
+        reply['list']=response[1]
+    else:
+        reply['service']=response[0]
+        reply['request_#']=message['request_#']
+        reply['reason']=response[1]
+    
+    msg=json.dumps(reply)
+    
+    UDPServerSocket.sendto(msg.encode(), address) 
+
+def retrieve_infot(message, address):
+   
+    response = dh.retrieve_infot(message['name'])
+
+    reply={}
+   
+    if response[0] == "RETRIEVE-INFOT":
+       reply['service'] = response[0]
+       reply['request_#']=message['request_#']
+       reply['name']=response[1]
+       reply['IP']=response[2]
+       reply['TCP_socket']=response[3]
+       reply['list']=response[4]
+    else:
+        reply['service']=response[0]
+        reply['request_#']=message['request_#']
+        reply['reason']=response[1]
+    
+    msg=json.dumps(reply)
+    
+    UDPServerSocket.sendto(msg.encode(), address) 
+
+def search_file(message, address):
+
+    response = dh.search_file(message['File-name'])
+
+    reply={}
+
+    if response[0] == "SEARCH-FILE":
+       reply['service'] = response[0]
+       reply['request_#']=message['request_#']
+       reply['list']=response[1]
+    else:
+        reply['service']=response[0]
+        reply['request_#']=message['request_#']
+        reply['reason']=response[1]
+    
+    msg=json.dumps(reply)
+    
+    UDPServerSocket.sendto(msg.encode(), address) 
 
 
 def handle_client(message, address):
-    print("[NEW CONNECTION]" + address + " connected.")
 
+    print("[NEW CONNECTION]" + address + " connected.")
     print("Received message: " + message)
     
-    msg="Message Received"
-    bytes_msg=msg.encode()
+    message_json=json.loads()
+    service_type=message_json['service']
 
     end = address.find(",")
     CLIENT_HOST=address[2:end-1]
     CLIENT_PORT=address[end+1:-1]
+    addr = (CLIENT_HOST, int(CLIENT_PORT)) 
 
-    
-    UDPServerSocket.sendto(bytes_msg, (CLIENT_HOST, int(CLIENT_PORT)))
+    if service_type == "REGISTER":
+        registration(message_json, addr)
+    elif service_type == "DE-REGISTER":
+        derigistration(message_json)
+    elif service_type == "PUBLISH":
+        publishing(message_json, addr)
+    elif service_type == "REMOVE":
+        file_removal(message_json, addr)
+    elif service_type == "RETRIEVE-ALL":
+        retrieve_all(message_json, addr)
+    elif service_type == "RETRIEVE-INFOT":
+        retrieve_infot(message_json, addr)
+    elif service_type == "SEARCH-FILE":
+        search_file(message_json, addr)
+    elif service_type == "UPDATE CONTACT":
+        update_contact(message_json, addr)
 
-    # depending on type
-    # possible types: REGISTER, DE-REGISTER, PUBLISH, REMOVE, RETRIEVE-ALL, RETRIEVE-INFOT, SEARCH-FILE, UPDATE CONTACT
-    # execute appropriate function 
+    # msg="Message Received"
+    # bytes_msg=msg.encode()
+    # UDPServerSocket.sendto(bytes_msg, (CLIENT_HOST, int(CLIENT_PORT)))
+
 
 
 def start():
