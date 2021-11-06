@@ -3,6 +3,7 @@ import threading
 import json
 import database_handler as dh
 
+
 PORT = 5050
 HOST = socket.gethostbyname(socket.gethostname())
 UDPServerSocket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

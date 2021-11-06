@@ -1,15 +1,18 @@
 import mysql.connector
+import database_handler
 
-Registered_Client_db = mysql.connector.connect (
+Registered_Client_db = mysql.connector.connect(
     host="",
     user="",
     password="",
     database=""
 )
 
+
 #field1:name of client field2:ip_address field3:udp_socket  filed4:tcp_socket
 
 Files_db = mysql.connector.connect (
+
     host="",
     user="",
     password="",
@@ -26,6 +29,7 @@ mycursor_files = Files_db.cursor()
 def check_client(name,ip_address, udp_socket, tcp_socket):
     # return valid error message if client is not good
     # return ok is client is good
+
     pass
 
 def register_client(name, ip_address, udp_socket, tcp_socket):
@@ -35,7 +39,12 @@ def register_client(name, ip_address, udp_socket, tcp_socket):
     pass
 
 def update_client(name, ip_address, udp_socket, tcp_socket):
+
+    # Check client connection
+    # Update client information
+    # Validate information change (correct types)
     # return UPDATE-CONFIRMED or UPDATE DENIED, REASON
+
     pass
 
 def derigister(name):
@@ -65,9 +74,7 @@ def retrieve_all():
 
 def retrieve_infot(name):
     # if success
-    # return RETRIEVE-INFOT and a list of list for one specific client containing the following:
-    # List of (Name, IP address, TCP socket#, list of available files) 
-    # if error return RETRIEVE-ERROR and REASON 
+    # return ["RETRIEVE-INFOT", "name", "ip", "tcp port",  ["file1", "file2, ...] ]
     pass
 
 def search_file(file_name):
