@@ -10,8 +10,6 @@ UDPServerSocket.bind((HOST, PORT))
 
 #TASK 1
 def registration(message, address):
-
-    print("is cool!")
     
     response = dh.register_client(message['name'], message['IP'], message['UDP_socket'], message['TCP_socket'])
 
