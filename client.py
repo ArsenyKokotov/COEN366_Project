@@ -104,8 +104,8 @@ def server_request():
     UDPServerSocket.sendto(msg.encode(), (SERVER_HOST, 5050))
 
 
+# want to send messages to specific client
 def peer_request():
-    # want to send messages to specific client
     pass
 
 
@@ -137,7 +137,7 @@ def CommandlineThread():
 
 
 # This thread listens for TCP connections and starts a new thread for each one
-def PeerListenerThread():
+def peer_listener_thread():
     # client receiving messages from other clients
     # conn, addr = TCPServerSocket.accept()
     # thread = threading.Thread(target=handle_client, args=(conn, addr))
@@ -164,8 +164,9 @@ def peer_connection_handler(conn, addr):
     download_error_message = {'service': 'DOWNLOAD-ERROR', 'request_#': -1, 'Reason': 'unspecified'}
 
     data = conn.recv(1024)
-    print('received data from peer: ', data, addr)
+    print('[TCP Listen] received data from peer: ', data, addr)
 
+    # Parse the request
     try:
         data_json = json.loads(data.decode('utf-8'))
         message_type = data_json['service']
@@ -179,31 +180,78 @@ def peer_connection_handler(conn, addr):
         request_number = data_json['request_#']
         request_filename = data_json['filename']
 
-        # TODO: also need to check if this file was published?
-        if not os.path.isfile(os.path.join(client_directory, request_filename)):
-            download_error_message['Reason'] = 'Requested file does not exist'
-            msg_bytes = json.dumps(download_error_message).encode('utf-8')
-            return False
 
     except:
         download_error_message['Reason'] = 'Expected valid JSON request for DOWNLOAD'
         msg_bytes = json.dumps(download_error_message).encode('utf-8')
         conn.sendall(msg_bytes)
-        conn.close()
+        #conn.close()  #TODO: not closing connection here since according to doc client is meant to do that
+        return False
+
+    # Respond to the request
+    # TODO: also need to check if this file was published?
+    # Check that the requested file exists
+    if not os.path.isfile(os.path.join(client_directory, request_filename)):
+        download_error_message['Reason'] = 'Requested file does not exist'
+        download_error_message['request_#'] = request_number
+        msg_bytes = json.dumps(download_error_message).encode('utf-8')
+        conn.sendall(msg_bytes)
+        #conn.close()
         return False
 
 
+    # File does exist, so read it, split it into chunks (if needed) and send it
+    # TODO: empty file behaviour?
+    with open(os.path.join(client_directory, request_filename), 'r') as f:
+        text = f.read()
+
+    # https://pythonexamples.org/python-split-string-into-specific-length-chunks/
+    # https://stackoverflow.com/questions/13673060/split-string-into-strings-by-length
+    chunks = [text[i:i+data_chunk_size_limit] for i in range(0, len(text), data_chunk_size_limit)]
+    chunk_count = len(chunks)
+
+    # Only one chunk to send, so only send FILE-END chunk
+    if(chunk_count == 1):
+        file_end_message['filename'] = request_filename
+        file_end_message['request_#'] = request_number
+        file_end_message['chunk_#'] = 0
+        file_end_message['Text'] = text
+        msg_bytes = json.dumps(file_end_message).encode('utf-8')
+        conn.sendall(msg_bytes)
+        conn.close()
+        return True
+    # More than one chunk:
+    else:
+        file_message['filename'] = request_filename
+        file_message['request_#'] = request_number
+        file_end_message['filename'] = request_filename
+        file_end_message['request_#'] = request_number
+
+        # Send chunks 0 to second last
+        for i in range(0, chunk_count-1):
+            file_message['chunk_#'] = 0
+            file_message['Text'] = chunks[i]
+            msg_bytes = json.dumps(file_message).encode('utf-8')
+            conn.sendall(msg_bytes)
+
+        # send last chunk
+        file_end_message['chunk_#'] = 0
+        file_end_message['Text'] = chunks[chunk_count-1]
+        msg_bytes = json.dumps(file_end_message).encode('utf-8')
+        conn.sendall(msg_bytes)
+        conn.close()
+        return True
 
 
 # This thread listens for UDP datagrams from the server
-def ServerListenerThread():
+def server_listener_thread():
     while True:
         # client receiving messages from server
         bytesAddressPair = UDPServerSocket.recvfrom(1024)  # message from server
         message = bytesAddressPair[0]
         address = bytesAddressPair[1]
-        msg1 = "From:{}".format(address)
-        msg2 = " Message:{}".format(message)
+        msg1 = "[UDP Listen] From:{}".format(address)
+        msg2 = "[UDP Listen] Message:{}".format(message)
         print(msg1 + msg2)
 
 
@@ -236,12 +284,12 @@ def start():
         cli_thread.start()
 
         # thread to listen for UDP messages from the server
-        server_listen_thread = threading.Thread(target=ServerListenerThread())
+        server_listen_thread = threading.Thread(target=server_listener_thread())
         server_listen_thread.start()
 
     elif (mode == 'peer'):
         # thread to listen for TCP connections from peers
-        peer_listen_thread = threading.Thread(target=PeerListenerThread())
+        peer_listen_thread = threading.Thread(target=peer_listener_thread())
         peer_listen_thread.start()
 
 
