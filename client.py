@@ -105,8 +105,18 @@ def server_request():
 
 
 # want to send messages to specific client
+# TODO: Need access to client list, file list here (so we can get their IP/port and list the available files)
 def peer_request():
-    pass
+
+    target_host = input('What host would you like to download a file from?')
+
+    # TODO get the files for the specified host
+    target_file = input('What file would you like to download from the host?')
+
+    # TODO: open TCP connection to the specified host:port
+    #       Then use send_lengthprefix_json to send the request message
+    #       Then use receive_lengthprefix_json until FILE-END message received to get chunks
+    #       Then reassemble chunks (and write file to client folder?)
 
 
 def CommandlineThread():
@@ -163,7 +173,8 @@ def peer_connection_handler(conn, addr):
     file_end_message = {'service': 'FILE-END', 'request_#': -1, 'filename': '', 'chunk_#': -1, 'Text': ''}
     download_error_message = {'service': 'DOWNLOAD-ERROR', 'request_#': -1, 'Reason': 'unspecified'}
 
-    data = conn.recv(1024)
+    #data = conn.recv(1024)
+    data = receive_lengthprefix_json(conn)
     print('[TCP Listen] received data from peer: ', data, addr)
 
     # Parse the request
@@ -173,8 +184,9 @@ def peer_connection_handler(conn, addr):
 
         if message_type != 'DOWNLOAD':
             download_error_message['Reason'] = 'Peer can only provide DOWNLOAD service'
-            msg_bytes = json.dumps(download_error_message).encode('utf-8')
-            conn.sendall(msg_bytes)
+            #msg_bytes = json.dumps(download_error_message).encode('utf-8')
+            #conn.sendall(msg_bytes)
+            send_lengthprefix_json(download_error_message, conn)
             return False
 
         request_number = data_json['request_#']
@@ -183,9 +195,10 @@ def peer_connection_handler(conn, addr):
 
     except:
         download_error_message['Reason'] = 'Expected valid JSON request for DOWNLOAD'
-        msg_bytes = json.dumps(download_error_message).encode('utf-8')
-        conn.sendall(msg_bytes)
-        #conn.close()  #TODO: not closing connection here since according to doc client is meant to do that
+        #msg_bytes = json.dumps(download_error_message).encode('utf-8')
+        #conn.sendall(msg_bytes)
+        send_lengthprefix_json(download_error_message, conn)
+        #conn.close() #not closing connection here since according to doc client is meant to do that
         return False
 
     # Respond to the request
@@ -194,8 +207,9 @@ def peer_connection_handler(conn, addr):
     if not os.path.isfile(os.path.join(client_directory, request_filename)):
         download_error_message['Reason'] = 'Requested file does not exist'
         download_error_message['request_#'] = request_number
-        msg_bytes = json.dumps(download_error_message).encode('utf-8')
-        conn.sendall(msg_bytes)
+        #msg_bytes = json.dumps(download_error_message).encode('utf-8')
+        #conn.sendall(msg_bytes)
+        send_lengthprefix_json(download_error_message, conn)
         #conn.close()
         return False
 
@@ -216,8 +230,9 @@ def peer_connection_handler(conn, addr):
         file_end_message['request_#'] = request_number
         file_end_message['chunk_#'] = 0
         file_end_message['Text'] = text
-        msg_bytes = json.dumps(file_end_message).encode('utf-8')
-        conn.sendall(msg_bytes)
+        #msg_bytes = json.dumps(file_end_message).encode('utf-8')
+        #conn.sendall(msg_bytes)
+        send_lengthprefix_json(file_end_message, conn)
         conn.close()
         return True
     # More than one chunk:
@@ -231,16 +246,65 @@ def peer_connection_handler(conn, addr):
         for i in range(0, chunk_count-1):
             file_message['chunk_#'] = 0
             file_message['Text'] = chunks[i]
-            msg_bytes = json.dumps(file_message).encode('utf-8')
-            conn.sendall(msg_bytes)
+            #msg_bytes = json.dumps(file_message).encode('utf-8')
+            #conn.sendall(msg_bytes)
+            send_lengthprefix_json(file_message, conn)
 
         # send last chunk
         file_end_message['chunk_#'] = 0
         file_end_message['Text'] = chunks[chunk_count-1]
-        msg_bytes = json.dumps(file_end_message).encode('utf-8')
-        conn.sendall(msg_bytes)
-        conn.close()
+        send_lengthprefix_json(file_end_message, conn)
+        #conn.close()  # Up to client to close connection
         return True
+
+# Given a json-serializable object, send the json with a 4 byte length prefix over a TCP connection
+def send_lengthprefix_json(message, conn):
+    json_text = json.dumps(message)
+    json_text_len = len(json_text)
+    prefixed_text = json_text_len.to_bytes(4, 'big')  # Send 4 bytes, big endian
+    msg_bytes = prefixed_text.encode('utf-8')
+    conn.sendall(msg_bytes)
+
+    return True
+
+# function to return one JSON message at a time from the connection
+def receive_lengthprefix_json(conn):
+    # buffer = []
+    # read_count = 0
+
+    length_prefix_bytes = recvall(conn, 4)  # get the length, use recvall because we need all 4 bytes at once
+
+    # if there is no message
+    if not length_prefix_bytes:
+        return None
+
+    # if there is the length prefix for a message, use recvall again to get exactly the length of the message
+    length_prefix = int.from_bytes(length_prefix_bytes, byteorder='big')
+    print('[PEER][RECVJSON] Got JSON length prefix of ', length_prefix)
+
+    message = recvall(conn, length_prefix)
+    return message
+
+    # # read until we get entire message but not a single byte more
+    # while read_count < length_prefix:
+    #     received = conn.recv(1024)
+    #     # If we received less bytes than the JSON length, add them all to the buffer
+    #     # If we received more (likely the start of the next JSON message), only add as many
+    #     buffer += received[0, min(length_prefix-read_count, len(received))]
+    #     read_count = len(buffer)
+
+
+# https://stackoverflow.com/questions/17667903/python-socket-receive-large-amount-of-data
+# Receive all from recv request
+def recvall(sock, n):
+    # Helper function to recv n bytes or return None if EOF is hit
+    data = bytearray()
+    while len(data) < n:
+        packet = sock.recv(n - len(data))
+        if not packet:
+            return None
+        data.extend(packet)
+    return data
 
 
 # This thread listens for UDP datagrams from the server
@@ -276,8 +340,7 @@ def start():
     mode = args.mode
     client_name = args.name
 
-    # TCPServerSocket.listen()
-
+    # Launch CLI environment
     if (mode == 'client'):
         # thread for client sending messages to server or another client as specified by user input
         cli_thread = threading.Thread(target=CommandlineThread)
@@ -287,6 +350,7 @@ def start():
         server_listen_thread = threading.Thread(target=server_listener_thread())
         server_listen_thread.start()
 
+    # Launch listener for peer requests
     elif (mode == 'peer'):
         # thread to listen for TCP connections from peers
         peer_listen_thread = threading.Thread(target=peer_listener_thread())
