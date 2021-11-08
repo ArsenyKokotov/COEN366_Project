@@ -105,12 +105,11 @@ def server_request():
 
 
 # want to send messages to specific client
-# TODO: Need access to client list, file list here (so we can get their IP/port and list the available files)
+# TODO: Need access to client list, file list here (so we can get their IP/port and list the available files)?
 def peer_request():
 
     target_host = input('What host would you like to download a file from?')
 
-    # TODO get the files for the specified host
     target_file = input('What file would you like to download from the host?')
 
     # TODO: open TCP connection to the specified host:port
