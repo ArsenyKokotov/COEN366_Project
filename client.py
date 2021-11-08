@@ -107,6 +107,7 @@ def server_request():
 # want to send messages to specific client
 # TODO: Need access to client list, file list here (so we can get their IP/port and list the available files)?
 def peer_request():
+    download_message = {'service': 'DOWNLOAD', 'request_#': -1, 'filename': ''}
 
     target_host = input('What host would you like to download a file from?')
 
