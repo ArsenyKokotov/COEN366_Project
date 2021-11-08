@@ -162,7 +162,7 @@ def peer_listener_thread(host, port_tcp, client_directory):
         conn, addr = TCPServerSocket.accept()
 
         # And spawn a new thread to handle them
-        thread = threading.Thread(target=peer_connection_handler, args=(conn, addr, client_directory))
+        thread = threading.Thread(target=peer_connection_handler, args=(conn, addr, client_directory), daemon=True)
         thread.start()
 
 
@@ -179,7 +179,7 @@ def peer_connection_handler(tcp_conn, addr, client_directory):
 
     #data = conn.recv(1024)
     data = receive_lengthprefix_json(tcp_conn)
-    print('[TCP Listen] received data from peer: ', data, addr)
+    print('[PEER][TCP Listen] received request: ', data, addr)
 
     # Parse the request
     try:
@@ -287,7 +287,7 @@ def receive_lengthprefix_json(tcp_conn):
 
     # if there is the length prefix for a message, use recvall again to get exactly the length of the message
     length_prefix = int.from_bytes(length_prefix_bytes, byteorder='big')
-    print('[PEER][RECVJSON] Got JSON length prefix of ', length_prefix)
+    #print('[RECVJSON] Got JSON length prefix of ', length_prefix)
 
     message = recvall(tcp_conn, length_prefix)
     return message
@@ -365,7 +365,9 @@ def start():
         UDPServerSocket.bind((host, port_udp))
 
         # thread for client sending messages to server or another client as specified by user input
-        cli_thread = threading.Thread(target=CommandlineThread, args=(UDPServerSocket, host, server_host, port_udp, port_tcp, client_directory, client_name))
+        cli_thread = threading.Thread(target=CommandlineThread,
+                                      args=(UDPServerSocket, host, server_host, port_udp, port_tcp, client_directory, client_name),
+                                      daemon=True)
         cli_thread.start()
 
         # thread to listen for UDP messages from the server
@@ -375,7 +377,8 @@ def start():
     # Launch listener for peer requests
     elif (mode == 'peer'):
         # thread to listen for TCP connections from peers
-        peer_listen_thread = threading.Thread(target=peer_listener_thread, args=(host, port_tcp, client_directory))
+        peer_listen_thread = threading.Thread(target=peer_listener_thread, args=(host, port_tcp, client_directory),
+                                              daemon=True)
         peer_listen_thread.start()
 
 
