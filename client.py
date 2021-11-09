@@ -1,5 +1,4 @@
-# Usage:
-# python client.py --udpport 5060 --tcpport 5070 --mode client --folder client_file_storage --name test1
+# start() function for CLI usage information
 
 import socket
 import sys
@@ -107,18 +106,56 @@ def server_request(UDPServerSocket, host, server_host, port_udp, port_tcp, clien
 
 
 # want to send messages to specific client
-# TODO: Need access to client list, file list here (so we can get their IP/port and list the available files)?
-def peer_request(host, server_host, port_tcp, client_directory, client_name):
+# TODO: Need access to peer information here so we can know how to resolve a peer name to IP+port
+#  may also need file list here (so we can get their IP/port and list the available files)?
+#  or we could do our own request to the DB server here?
+def peer_request(client_directory, client_name):
     download_message = {'service': 'DOWNLOAD', 'request_#': -1, 'filename': ''}
 
-    target_host = input('What host would you like to download a file from?')
+    # TODO get peer name and resolve it to IP/port instead of manually entering
+    #target_peer = input('What peer would you like to download a file from?')
+    peer_ip = input('[CLIENT] What is IP of peer?: ')
+    port_tcp = int(input('[CLIENT] What is port of peer?: '))
 
-    target_file = input('What file would you like to download from the host?')
+    target_file = input('[CLIENT] What file would you like to download from the peer?: ')
 
-    # TODO: open TCP connection to the specified host:port
-    #       Then use send_lengthprefix_json to send the request message
-    #       Then use receive_lengthprefix_json until FILE-END message received to get chunks
-    #       Then reassemble chunks (and write file to client folder?)
+    file = ask_for_file(target_file, peer_ip, port_tcp)
+
+
+def ask_for_file(ask_filename, peer_ip, port_tcp_peer):
+    dl_req = {'service': 'DOWNLOAD', 'request_#': 1, 'filename': ask_filename}
+
+
+    print('\n[TCP CLIENT] Connecting to server on port', peer_ip, port_tcp_peer)
+    tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    tcp_socket.connect((peer_ip, port_tcp_peer))
+    print('[TCP CLIENT] TCP connection: ', tcp_socket)
+
+    print('[TCP CLIENT] Sending ', dl_req)
+    send_lengthprefix_json(dl_req, tcp_socket)
+
+    file_end = False
+    chunks = []
+    while not file_end:
+        result = receive_lengthprefix_json(tcp_socket)
+        decoded = json.loads(result.decode(('utf-8')))
+        chunks.append(decoded)
+        print('[TCP CLIENT] Got chunk: ', decoded)
+        if(decoded['service'] == 'FILE-END'):
+            file_end = True
+        elif(decoded['service'] == 'FILE'):
+            # loop around and get next chunk
+            pass
+        else:
+            print('[TCP CLIENT] Received invalid service from peer in chunk: ', decoded['service'])
+            raise ValueError
+
+    reassembled = ''.join([x['Text'] for x in chunks])
+    print('[TCP CLIENT] Reassembled file {f}: {r}'.format(f=chunks[-1]['filename'], r=reassembled))
+
+    tcp_socket.close()
+
+    return reassembled
 
 
 def CommandlineThread(UDPServerSocket, host, server_host, port_udp, port_tcp, client_directory, client_name):
@@ -128,7 +165,7 @@ def CommandlineThread(UDPServerSocket, host, server_host, port_udp, port_tcp, cl
             server_request(UDPServerSocket, host, server_host, port_udp, port_tcp, client_directory, client_name)
             #break
         elif identity == "PEER":
-            peer_request(host, server_host, port_tcp, client_directory, client_name)
+            peer_request(client_directory, client_name)
             #break
         else:
             print("No such service exists. Please repeat.")
@@ -250,14 +287,14 @@ def peer_connection_handler(tcp_conn, addr, client_directory):
 
         # Send chunks 0 to second last
         for i in range(0, chunk_count-1):
-            file_message['chunk_#'] = 0
+            file_message['chunk_#'] = i
             file_message['Text'] = chunks[i]
             #msg_bytes = json.dumps(file_message).encode('utf-8')
             #conn.sendall(msg_bytes)
             send_lengthprefix_json(file_message, tcp_conn)
 
         # send last chunk
-        file_end_message['chunk_#'] = 0
+        file_end_message['chunk_#'] = chunk_count-1
         file_end_message['Text'] = chunks[chunk_count-1]
         send_lengthprefix_json(file_end_message, tcp_conn)
         #conn.close()  # Up to client to close connection
@@ -325,7 +362,14 @@ def server_listener_thread(UDPServerSocket):
         msg2 = "[UDP Listen] Message:{}".format(message)
         print(msg1 + msg2)
 
-
+# Usage:
+# To launch client CLI
+# python client.py --udpport 5060 --tcpport 5070 --mode client --folder client_file_storage --name test1
+#
+# To launch peer listener
+# python client.py --udpport 5060 --tcpport 5070 --mode peer --folder client_file_storage --name test1
+#
+# and to specify your IP and database server IP to use in either mode: --host "127.0.0.1" --server_host "127.0.0.1"
 def start():
     #global PORT_UDP, PORT_TCP, client_name, client_directory
 
@@ -349,15 +393,21 @@ def start():
     mode = args.mode
     client_name = args.name
 
-    # Our IP interface to bind on
+    # Our IP interface to bind on / use
     if not args.host:
         host = socket.gethostbyname(socket.gethostname())
-        print("HOST value: ", host)
+    else:
+        host = args.host
+
+    print("Client interface: ", host)
 
     # Server IP address
     if not args.server_host:
         server_host = socket.gethostbyname(socket.gethostname())
         print("No server_host param, assuming local server\nSERVER_HOST value: ", server_host)
+    else:
+        server_host = args.server_host
+        print("Server IP: ", server_host)
 
     # Launch CLI environment
     if (mode == 'client'):
