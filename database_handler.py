@@ -33,7 +33,7 @@ def check_client(name, ip_address, udp_socket, tcp_socket):
     else:
         print("Client format is INVALID")
         return False
-    pass
+
 
 
 def register_client(name, ip_address, udp_socket, tcp_socket):
