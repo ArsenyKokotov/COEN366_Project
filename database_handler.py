@@ -25,8 +25,9 @@ def check_client(name, ip_address, udp_socket, tcp_socket):
 def register_client(name, ip_address, udp_socket, tcp_socket):
     # check if client is already registered, check if the input values are valid, etc
     if check_client(name, ip_address, udp_socket, tcp_socket):
-        alreadyExistCheck = mycursor_client.execute("SELECT * FROM clientDB WHERE ip_address =?", (ip_address),)
+        alreadyExistCheck = mycursor_client.execute("SELECT * FROM clientDB WHERE ip_address =?", [ip_address],)
         if len(list(alreadyExistCheck)) >= 1:
+            print("Address already exists!")
             return ["REGISTER-DENIED", "CLIENT ALREADY EXISTS"]
         else:
             print("CLIENT CAN BE REGISTERED")
@@ -35,10 +36,6 @@ def register_client(name, ip_address, udp_socket, tcp_socket):
                                     (name, ip_address, udp_socket, tcp_socket))
             Registered_Client_db.commit()
             return ["REGISTERED"]
-
-    else:
-        print("Client format is INVALID")
-        return ["REGISTER-DENIED", "Client format is INVALID"]
 
     # depending on answer from function, return either REGISTERED or REGISTER-DENIED and REASON
 
