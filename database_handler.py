@@ -103,17 +103,22 @@ def retrieve_all():
     # return RETRIEVE and list of list containing the following:
     # List of (Name, IP address, TCP socket#, list of available files)
     # if error return RETRIEVE-ERROR and REASON
-    mycursor_files.execute("", )
-    return ["RETRIEVE", ]
+    length = mycursor_files.execute("SELECT * FROM filesDB")
+    if len(length):
+        rows = mycursor_files.fetchall()
+        for row in rows:
+            return ["RETRIEVE", row["name"], row["ip_address"], row["tcp_socket"], [row["file_name"]]]
+    else:
+        return ["RETRIEVE-ERROR", "No entries in filesDB"]
 
 
 def retrieve_infot(name):
     # if success
     # return ["RETRIEVE-INFOT", "name", "ip", "tcp port",  ["file1", "file2, ...] ]
-    mycursor_files.execute("SELECT name, ip_address, tcp_socket, file_name FROM filesDB WHERE name = ? ", name)
-    output = mycursor_files.fetchall()
-
-    return ["RETRIEVE-INFOT",  ]
+    mycursor_files.execute("SELECT * FROM filesDB WHERE name = ? ", name)
+    rows = mycursor_files.fetchall()
+    for row in rows:
+        return ["RETRIEVE-INFOT", row["name"], row["ip_address"], row["tcp_socket"], [row["file_name"]]]
 
 
 def search_file(file_name):
