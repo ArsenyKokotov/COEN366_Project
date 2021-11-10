@@ -25,9 +25,8 @@ def check_client(name, ip_address, udp_socket, tcp_socket):
 def register_client(name, ip_address, udp_socket, tcp_socket):
     # check if client is already registered, check if the input values are valid, etc
     if check_client(name, ip_address, udp_socket, tcp_socket):
-        alreadyExistCheck = mycursor_client.execute("SELECT * FROM clientDB WHERE ip_address =?",
-                                                    ip_address)
-        if len(alreadyExistCheck) >= 1:
+        alreadyExistCheck = mycursor_client.execute("SELECT * FROM clientDB WHERE ip_address =?", (ip_address),)
+        if len(list(alreadyExistCheck)) >= 1:
             return ["REGISTER-DENIED", "CLIENT ALREADY EXISTS"]
         else:
             print("CLIENT CAN BE REGISTERED")
@@ -76,7 +75,7 @@ def publish_files(name, list_of_files):
     # if all is well, return PUBLISHED
     # if name does not exist or something else go bad, return PUBLISH-DENIED and REASON
     alreadyExistCheck = mycursor_client.execute("SELECT * FROM clientDB WHERE name=?", name)
-    if len(alreadyExistCheck) >= 1:
+    if len(list(alreadyExistCheck)) >= 1:
         values = [[item] for item in list_of_files]
         mycursor_files.execute("INSERT INTO filesDB (name, files) VALUES (?,?)", (name, values))
         Files_db.commit()
@@ -90,7 +89,7 @@ def remove_files(name, list_of_files):
     # if all is well, return REMOVED
     # else return REMOVE-DENIED and Reason
     alreadyExistCheck = mycursor_client.execute("SELECT * FROM clientDB WHERE name=?", name)
-    if len(alreadyExistCheck) >= 1:
+    if len(list(alreadyExistCheck)) >= 1:
         values = [[item] for item in list_of_files]
         mycursor_files.execute("DELETE FROM filesDB WHERE name=?", name)
         Files_db.commit()
@@ -105,7 +104,7 @@ def retrieve_all():
     # List of (Name, IP address, TCP socket#, list of available files)
     # if error return RETRIEVE-ERROR and REASON
     length = mycursor_files.execute("SELECT * FROM filesDB")
-    if len(length):
+    if len(list(length)):
         rows = mycursor_files.fetchall()
         for row in rows:
             return ["RETRIEVE", row["name"], row["ip_address"], row["tcp_socket"], [row["file_name"]]]
@@ -128,7 +127,7 @@ def search_file(file_name):
     # else return SEARCH-ERROR and REASON
     length = mycursor_files.execute("SELECT name, ip_address, tcp_socket  "
                                     "FROM filesDB WHERE file_name = ? ", file_name)
-    if len(length) >= 1:
+    if len(list(length)) >= 1:
         searchOutput = mycursor_files.fetchall()
         final_result = [i[0] for i in searchOutput]
         return ["SEARCH FILE", [final_result]]
