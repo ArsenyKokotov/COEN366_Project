@@ -1,3 +1,4 @@
+import sys
 import mysql.connector
 import sqlite3
 
@@ -13,7 +14,7 @@ mycursor_files = Files_db.cursor()
 def check_client(name, ip_address, udp_socket, tcp_socket):
     # return valid error message if client is not good
     # return ok is client is good
-    if (name.isalpha()) and ip_address.isalpha() and udp_socket.isnumeric() and tcp_socket.isnumeric():
+    if (name.isalnum()) and ip_address.isalnum() and udp_socket.isnumeric() and tcp_socket.isnumeric():
         print("Client format is VALID")
         return True
     else:
