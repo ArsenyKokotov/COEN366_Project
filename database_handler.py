@@ -103,24 +103,28 @@ def retrieve_all():
     # return RETRIEVE and list of list containing the following:
     # List of (Name, IP address, TCP socket#, list of available files)
     # if error return RETRIEVE-ERROR and REASON
+    mycursor_files.execute("", )
     return ["RETRIEVE", ]
 
 
 def retrieve_infot(name):
     # if success
     # return ["RETRIEVE-INFOT", "name", "ip", "tcp port",  ["file1", "file2, ...] ]
-    pass
+    mycursor_files.execute("SELECT name, ip_address, tcp_socket, file_name FROM filesDB WHERE name = ? ", name)
+    output = mycursor_files.fetchall()
+
+    return ["RETRIEVE-INFOT",  ]
 
 
 def search_file(file_name):
     # find client(s) with this file from file db
     # if success, return SEARCH-FILE and List of (Name, IP address, TCP socket#)
     # else return SEARCH-ERROR and REASON
-    clientName = mycursor_files.execute("SELECT name FROM filesDB WHERE file_name = ? ", file_name)
-    if len(clientName) >= 1:
-        name = mycursor_client.execute("SELECT name FROM clientDB WHERE name=?", clientName)
-        ip_address = mycursor_client.execute("SELECT ip_address FROM clientDB WHERE name=?", clientName)
-        tcp_socket = mycursor_client.execute("SELECT tcp_socket FROM clientDB WHERE name=?", clientName)
-        return ["SEARCH FILE", [name, ip_address, tcp_socket]]
+    length = mycursor_files.execute("SELECT name, ip_address, tcp_socket  "
+                                    "FROM filesDB WHERE file_name = ? ", file_name)
+    if len(length) >= 1:
+        searchOutput = mycursor_files.fetchall()
+        final_result = [i[0] for i in searchOutput]
+        return ["SEARCH FILE", [final_result]]
     else:
         return ["SEARCH-ERROR", "File name does not exist!"]
