@@ -363,10 +363,13 @@ def server_listener_thread(UDPServerSocket):
         print(msg1 + msg2)
 
 # Usage:
-# To launch client CLI
+# To launch client CLI and peer listener
+# python client.py --udpport 5060 --tcpport 5070 --mode both --folder client_file_storage --name test1
+#
+# To launch only client CLI
 # python client.py --udpport 5060 --tcpport 5070 --mode client --folder client_file_storage --name test1
 #
-# To launch peer listener
+# To launch only peer listener
 # python client.py --udpport 5060 --tcpport 5070 --mode peer --folder client_file_storage --name test1
 #
 # and to specify your IP and database server IP to use in either mode: --host "127.0.0.1" --server_host "127.0.0.1"
@@ -379,7 +382,7 @@ def start():
     parser.add_argument('--udpport', type=int, required=True)
     parser.add_argument('--tcpport', type=int, required=True)
     parser.add_argument('--folder', type=str, required=True)
-    parser.add_argument('--mode', type=str, choices=['client', 'peer'], required=True)
+    parser.add_argument('--mode', type=str, choices=['client', 'peer', 'both'], required=True)
     parser.add_argument('--name', type=str, required=True)
     parser.add_argument('--host', type=str, required=False)
     parser.add_argument('--server_host', type=str, required=False)
@@ -431,9 +434,27 @@ def start():
                                               daemon=True)
         peer_listen_thread.start()
 
+    elif (mode == 'both'):
+        UDPServerSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        UDPServerSocket.bind((host, port_udp))
+
+        # thread for client sending messages to server or another client as specified by user input
+        cli_thread = threading.Thread(target=CommandlineThread,
+                                      args=(UDPServerSocket, host, server_host, port_udp, port_tcp, client_directory, client_name),
+                                      daemon=True)
+        cli_thread.start()
+
+        # thread to listen for UDP messages from the server
+        server_listen_thread = threading.Thread(target=server_listener_thread, args=(UDPServerSocket,))
+        server_listen_thread.start()
+
+        # thread to listen for TCP connections from peers
+        peer_listen_thread = threading.Thread(target=peer_listener_thread, args=(host, port_tcp, client_directory),
+                                              daemon=True)
+        peer_listen_thread.start()
+
 
     while True:
-        thread_names = ['peer_listen_thread', 'server_listen_thread', 'cli_thread']
         try:
             time.sleep(1)
         except (EOFError, KeyboardInterrupt):
