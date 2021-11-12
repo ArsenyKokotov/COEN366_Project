@@ -25,7 +25,7 @@ def check_client(name, ip_address, udp_socket, tcp_socket):
 def register_client(name, ip_address, udp_socket, tcp_socket):
     # check if client is already registered, check if the input values are valid, etc
     if check_client(name, ip_address, udp_socket, tcp_socket):
-        alreadyExistCheck = mycursor_client.execute("SELECT * FROM clientDB WHERE ip_address =?", [ip_address],)
+        alreadyExistCheck = mycursor_client.execute("SELECT * FROM clientDB WHERE ip_address =?", [ip_address], )
         if len(list(alreadyExistCheck)) >= 1:
             print("Address already exists!")
             return ["REGISTER-DENIED", "CLIENT ALREADY EXISTS"]
@@ -47,8 +47,8 @@ def update_client(name, ip_address, udp_socket, tcp_socket):
     # return UPDATE-CONFIRMED or UPDATE DENIED, REASON
     if check_client(name, ip_address, udp_socket, tcp_socket):
         mycursor_client.execute(
-            "UPDATE clientDB SET name=?, ip_address=?, udp_socket=?, tcp_socket=? WHERE ip_address = ?",
-            (name, [ip_address], udp_socket, tcp_socket, [ip_address]))
+            "UPDATE clientDB SET udp_socket=?, tcp_socket=? WHERE ip_address = ?",
+            (int(udp_socket), int(tcp_socket), ip_address))
         Registered_Client_db.commit()
         return ["UPDATE-CONFIRMED"]
     else:
@@ -59,9 +59,9 @@ def deregister(name):
     # delete client from client db
     # delete all files related to this user from files db
     # if client does not exist do nothing
-    mycursor_client.execute("DELETE FROM clientDB WHERE name=?", name)
+    mycursor_client.execute("DELETE FROM clientDB WHERE name=?", [name])
     Registered_Client_db.commit()
-    mycursor_files.execute("DELETE FROM filesDB where name=?", name)
+    mycursor_files.execute("DELETE FROM filesDB where name=?", [name])
     Files_db.commit()
     print("Client and related Files deleted")
     return ["REMOVE"]
@@ -71,13 +71,15 @@ def publish_files(name, list_of_files):
     # insert each file in the list and name into file db
     # if all is well, return PUBLISHED
     # if name does not exist or something else go bad, return PUBLISH-DENIED and REASON
-    alreadyExistCheck = mycursor_client.execute("SELECT * FROM clientDB WHERE name=?", name)
+    list_of_files = [list_of_files]
+    alreadyExistCheck = mycursor_client.execute("SELECT * FROM clientDB WHERE name=?", [name])
     if len(list(alreadyExistCheck)) >= 1:
-        values = [[item] for item in list_of_files]
-        mycursor_files.execute("INSERT INTO filesDB (name, files) VALUES (?,?)", (name, values))
-        Files_db.commit()
-        return ["PUBLISHED"]
+        for item in list_of_files:
+            mycursor_files.execute("INSERT INTO filesDB (name, file_name) VALUES (?,?)", (name, item))
+            Files_db.commit()
+            return ["PUBLISHED"]
     else:
+        print("User does not exist!")
         return ["PUBLISH-DENIED", "Client does not exist!"]
 
 
@@ -85,10 +87,9 @@ def remove_files(name, list_of_files):
     # delete files from list of files that are id with name of client
     # if all is well, return REMOVED
     # else return REMOVE-DENIED and Reason
-    alreadyExistCheck = mycursor_client.execute("SELECT * FROM clientDB WHERE name=?", name)
+    alreadyExistCheck = mycursor_client.execute("SELECT * FROM clientDB WHERE name=?", [name])
     if len(list(alreadyExistCheck)) >= 1:
-        values = [[item] for item in list_of_files]
-        mycursor_files.execute("DELETE FROM filesDB WHERE name=?", name)
+        mycursor_files.execute("DELETE FROM filesDB WHERE name=? AND file_name=?", (name, list_of_files))
         Files_db.commit()
         return ["REMOVED"]
     else:
@@ -101,6 +102,8 @@ def retrieve_all():
     # List of (Name, IP address, TCP socket#, list of available files)
     # if error return RETRIEVE-ERROR and REASON
     length = mycursor_files.execute("SELECT * FROM filesDB")
+    rows = mycursor_files.fetchall()
+    print(rows)
     if len(list(length)):
         rows = mycursor_files.fetchall()
         for row in rows:
@@ -123,7 +126,9 @@ def search_file(file_name):
     # if success, return SEARCH-FILE and List of (Name, IP address, TCP socket#)
     # else return SEARCH-ERROR and REASON
     length = mycursor_files.execute("SELECT name, ip_address, tcp_socket  "
-                                    "FROM filesDB WHERE file_name = ? ", file_name)
+                                    "FROM filesDB WHERE file_name = ? ", [file_name])
+    rows = mycursor_files.fetchall()
+    print(rows)
     if len(list(length)) >= 1:
         searchOutput = mycursor_files.fetchall()
         final_result = [i[0] for i in searchOutput]
