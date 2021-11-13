@@ -170,8 +170,8 @@ def CommandlineThread(UDPServerSocket, host, server_host, port_udp, port_tcp, cl
                 #break
             else:
                 print("No such service exists. Please repeat.")
-        except:
-            print('[CLI] Error in CLI handler, returning to top level')
+        except Exception as e:
+            print('[CLI] Error in CLI handler, returning to top level: ', e)
 
 
 # Handled by command line arguments instead
