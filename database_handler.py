@@ -181,13 +181,30 @@ def search_file(file_name):
     # find client(s) with this file from file db
     # if success, return SEARCH-FILE and List of (Name, IP address, TCP socket#)
     # else return SEARCH-ERROR and REASON
-    length = mycursor_files.execute("SELECT name, ip_address, tcp_socket  "
-                                    "FROM filesDB WHERE file_name = ? ", [file_name])
-    rows = mycursor_files.fetchall()
-    print(rows)
-    if len(list(length)) >= 1:
-        searchOutput = mycursor_files.fetchall()
-        final_result = [i[0] for i in searchOutput]
-        return ["SEARCH FILE", [final_result]]
+    cursor = mycursor_files.execute("SELECT name FROM filesDB WHERE file_name = ? ", [file_name])
+    file_rows = mycursor_files.fetchall()
+
+    name_array=[]
+    
+    for file_tuple in file_rows:
+        name_array.append(file_tuple[0])
+
+    list_of_search=[]
+
+    if len(name_array)!=0:
+        for name in name_array:
+            cursor = mycursor_client.execute("SELECT name, ip_address, udp_socket, tcp_socket FROM clientDB WHERE name = ?", [name])
+            cli_row=mycursor_client.fetchall()
+            list_of_search.append(cli_row)
+        return ["SEARCH FILE", list_of_search]
     else:
         return ["SEARCH-ERROR", "File name does not exist!"]
+
+
+    # print(rows)
+    # if len(list(length)) >= 1:
+    #     searchOutput = mycursor_files.fetchall()
+    #     final_result = [i[0] for i in searchOutput]
+    #     return ["SEARCH FILE", [final_result]]
+    # else:
+    #     return ["SEARCH-ERROR", "File name does not exist!"]
