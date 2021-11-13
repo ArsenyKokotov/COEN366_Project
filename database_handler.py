@@ -101,24 +101,80 @@ def retrieve_all():
     # return RETRIEVE and list of list containing the following:
     # List of (Name, IP address, TCP socket#, list of available files)
     # if error return RETRIEVE-ERROR and REASON
-    length = mycursor_files.execute("SELECT * FROM filesDB")
-    rows = mycursor_files.fetchall()
-    print(rows)
-    if len(list(length)):
-        rows = mycursor_files.fetchall()
-        for row in rows:
-            return ["RETRIEVE", row["name"], row["ip_address"], row["tcp_socket"], [row["file_name"]]]
+    # length = mycursor_files.execute("SELECT * FROM filesDB")
+    # rows = mycursor_files.fetchall()
+    # print(rows)
+    # if len(list(length))>=1:
+    #     rows = mycursor_files.fetchall()
+    #     # for row in rows:
+    #     #     return ["RETRIEVE", row["name"], row["ip_address"], row["tcp_socket"], [row["file_name"]]]
+    #     return ["RETRIEVE", rows]
+    # else:
+    #     return ["RETRIEVE-ERROR", "No entries in filesDB"]
+
+    #find all names and ip and tcp and udp in client database 
+    # [(name, ip, udp, tcp), (...), (...), ...]
+
+    emptyTableCheck = mycursor_client.execute("SELECT COUNT(*) FROM clientDB")
+    count=mycursor_client.fetchone()
+    if count != 0:
+
+        cursor=mycursor_client.execute("SELECT * FROM clientDB")
+        cli_rows=mycursor_client.fetchall()
+
+        # get list of all inputs inside file database 
+        # [(name, ..., file), [(name, ..., file), ...]
+
+        cursor = mycursor_files.execute("SELECT * FROM filesDB")
+        file_rows = mycursor_files.fetchall()
+
+        list_of_list=[]
+
+        for cli_tuple in cli_rows:
+            # list=[]
+            # list.append(cli_tuple)
+            list_of_list.append(list(cli_tuple))
+            for file_tuple in file_rows:
+                if cli_tuple[0] == file_tuple[0]:
+                    file_list=list(file_tuple)
+                    del file_list[0]
+                    list_of_list[-1].extend(file_list)
+
+
+        print(list_of_list)
+        return ["RETRIEVE", list_of_list]
     else:
-        return ["RETRIEVE-ERROR", "No entries in filesDB"]
+        return ["RETRIEVE-ERROR", "No such client exists"]
 
 
 def retrieve_infot(name):
     # if success
     # return ["RETRIEVE-INFOT", "name", "ip", "tcp port",  ["file1", "file2, ...] ]
-    mycursor_files.execute("SELECT * FROM filesDB WHERE name = ? ", name)
-    rows = mycursor_files.fetchall()
-    for row in rows:
-        return ["RETRIEVE-INFOT", row["name"], row["ip_address"], row["tcp_socket"], [row["file_name"]]]
+    # mycursor_files.execute("SELECT * FROM filesDB WHERE name = ? ", [name])
+    # rows = mycursor_files.fetchall()
+    # for row in rows:
+    #     return ["RETRIEVE-INFOT", row["name"], row["ip_address"], row["tcp_socket"], [row["file_name"]]]
+
+    alreadyExistCheck = mycursor_client.execute("SELECT * FROM clientDB WHERE name=?", [name])
+    if len(list(alreadyExistCheck)) >= 1:
+
+        cursor=mycursor_client.execute("SELECT name, ip_address, udp_socket, tcp_socket FROM clientDB WHERE name = ?", [name])
+        cli_row=mycursor_client.fetchall()
+
+        cursor = mycursor_files.execute("SELECT * FROM filesDB WHERE name = ?", [name])
+        file_rows = mycursor_files.fetchall()
+
+    
+
+        file_list=[]
+        
+        for file_tuple in file_rows:
+            file_list.append(file_tuple[-1])
+        
+
+        return ["RETRIEVE-INFOT", cli_row[0][0], cli_row[0][1], cli_row[0][3], file_list]
+    else:
+        return ["RETRIEVE-ERROR", "No such client exists"]
 
 
 def search_file(file_name):
