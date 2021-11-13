@@ -45,7 +45,8 @@ def server_request(UDPServerSocket, host, server_host, port_udp, port_tcp, clien
     json_request['request_#'] = request_number
 
     if service_type == "REGISTER":
-        name = input("Enter your name: ")
+        # name = input("Enter your name: ")
+        name = client_name
         json_request['name'] = name
         json_request['IP'] = host
         json_request['UDP_socket'] = port_udp
