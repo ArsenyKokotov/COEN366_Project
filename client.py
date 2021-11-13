@@ -33,9 +33,9 @@ def server_request(UDPServerSocket, host, server_host, port_udp, port_tcp, clien
     json_request = {}
 
     while True:
-        service_type = input("Enter (DE)-REGISTER/PUBLISH/REMOVE/RETRIEVE-(ALL/INFOT)/SEARCH-FILE: ")
+        service_type = input("Enter (DE)-REGISTER/PUBLISH/REMOVE/RETRIEVE-(ALL/INFOT)/SEARCH-FILE/UPDATE-CONTACT: ")
         if service_type in ["REGISTER", "DE-REGISTER", "PUBLISH", "REMOVE", "RETRIEVE-ALL", "RETRIEVE-INFOT",
-                            "SEARCH-FILE"]:
+                            "SEARCH-FILE", "UPDATE-CONTACT"]:
             break
         else:
             print("No such service exists. Try again.")
@@ -51,6 +51,43 @@ def server_request(UDPServerSocket, host, server_host, port_udp, port_tcp, clien
         json_request['IP'] = host
         json_request['UDP_socket'] = port_udp
         json_request['TCP_socket'] = port_tcp
+    
+    elif service_type == "UPDATE-CONTACT":
+        name = client_name
+        json_request['name'] = name
+        
+        while True:
+            q=input("Do you want to change IP address (Y/N)?: ")
+            if q == "Y":
+                json_request['IP'] = input("Input new IP address: ")
+                break
+            elif q=="N":
+                json_request['IP'] = host
+                break
+            else:
+                print("Please answer Y or N")
+        
+        while True:
+            q=input("Do you want to change UDP_socket (Y/N)?: ")
+            if q == "Y":
+                json_request['UDP_socket'] = input("Input new UDP socket: ")
+                break
+            elif q=="N":
+                json_request['UDP_socket'] = port_udp
+                break
+            else:
+                print("Please answer Y or N")
+        
+        while True:
+            q=input("Do you want to change TCP_socket (Y/N)?:  ")
+            if q == "Y":
+                json_request['TCP_socket'] = input("Input new TCP socket: ")
+                break
+            elif q=="N":
+                json_request['TCP_socket'] = port_tcp
+                break
+            else:
+                print("Please answer Y or N")
 
     elif service_type == "DE-REGISTER":
         #name = input("Enter your name: ")
