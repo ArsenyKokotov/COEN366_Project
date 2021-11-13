@@ -77,7 +77,7 @@ def publish_files(name, list_of_files):
         for item in list_of_files:
             mycursor_files.execute("INSERT INTO filesDB (name, file_name) VALUES (?,?)", (name, item))
             Files_db.commit()
-            return ["PUBLISHED"]
+        return ["PUBLISHED"]
     else:
         print("User does not exist!")
         return ["PUBLISH-DENIED", "Client does not exist!"]
