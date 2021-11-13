@@ -161,7 +161,7 @@ def handle_client(message, address):
     print("[NEW CONNECTION]" + address + " connected.")
     print("Received message: " + message)
     
-    message_json=json.loads()
+    message_json=json.loads(message[2:-1])
     service_type=message_json['service']
 
     end = address.find(",")
