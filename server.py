@@ -183,7 +183,7 @@ def handle_client(message, address):
         retrieve_infot(message_json, addr)
     elif service_type == "SEARCH-FILE":
         search_file(message_json, addr)
-    elif service_type == "UPDATE CONTACT":
+    elif service_type == "UPDATE-CONTACT":
         update_contact(message_json, addr)
 
     # msg="Message Received"
