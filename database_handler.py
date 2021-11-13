@@ -89,8 +89,9 @@ def remove_files(name, list_of_files):
     # else return REMOVE-DENIED and Reason
     alreadyExistCheck = mycursor_client.execute("SELECT * FROM clientDB WHERE name=?", [name])
     if len(list(alreadyExistCheck)) >= 1:
-        mycursor_files.execute("DELETE FROM filesDB WHERE name=? AND file_name=?", (name, list_of_files))
-        Files_db.commit()
+        for files in list_of_files:
+            mycursor_files.execute("DELETE FROM filesDB WHERE name=? AND file_name=?", (name, files))
+            Files_db.commit()
         return ["REMOVED"]
     else:
         return ["REMOVE-DENIED", "Client does not exist!"]
