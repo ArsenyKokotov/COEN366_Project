@@ -196,7 +196,7 @@ def search_file(file_name):
             cursor = mycursor_client.execute("SELECT name, ip_address, udp_socket, tcp_socket FROM clientDB WHERE name = ?", [name])
             cli_row=mycursor_client.fetchall()
             list_of_search.append(cli_row)
-        return ["SEARCH FILE", list_of_search]
+        return ["SEARCH-FILE", list_of_search]
     else:
         return ["SEARCH-ERROR", "File name does not exist!"]
 
