@@ -160,15 +160,18 @@ def ask_for_file(ask_filename, peer_ip, port_tcp_peer):
 
 def CommandlineThread(UDPServerSocket, host, server_host, port_udp, port_tcp, client_directory, client_name):
     while True:
-        identity = input("Enter SERVER or PEER depending on who you want to contact: ")
-        if identity == "SERVER":
-            server_request(UDPServerSocket, host, server_host, port_udp, port_tcp, client_directory, client_name)
-            #break
-        elif identity == "PEER":
-            peer_request(client_directory, client_name)
-            #break
-        else:
-            print("No such service exists. Please repeat.")
+        try:
+            identity = input("Enter SERVER or PEER depending on who you want to contact: ")
+            if identity == "SERVER":
+                server_request(UDPServerSocket, host, server_host, port_udp, port_tcp, client_directory, client_name)
+                #break
+            elif identity == "PEER":
+                peer_request(client_directory, client_name)
+                #break
+            else:
+                print("No such service exists. Please repeat.")
+        except:
+            print('[CLI] Error in CLI handler, returning to top level')
 
 
 # Handled by command line arguments instead
