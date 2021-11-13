@@ -25,7 +25,7 @@ def check_client(name, ip_address, udp_socket, tcp_socket):
 def register_client(name, ip_address, udp_socket, tcp_socket):
     # check if client is already registered, check if the input values are valid, etc
     if check_client(name, ip_address, udp_socket, tcp_socket):
-        alreadyExistCheck = mycursor_client.execute("SELECT * FROM clientDB WHERE ip_address =?", [ip_address], )
+        alreadyExistCheck = mycursor_client.execute("SELECT * FROM clientDB WHERE name =?", [name], )
         if len(list(alreadyExistCheck)) >= 1:
             print("Address already exists!")
             return ["REGISTER-DENIED", "CLIENT ALREADY EXISTS"]
@@ -47,8 +47,8 @@ def update_client(name, ip_address, udp_socket, tcp_socket):
     # return UPDATE-CONFIRMED or UPDATE DENIED, REASON
     if check_client(name, ip_address, udp_socket, tcp_socket):
         mycursor_client.execute(
-            "UPDATE clientDB SET udp_socket=?, tcp_socket=? WHERE ip_address = ?",
-            (int(udp_socket), int(tcp_socket), ip_address))
+            "UPDATE clientDB SET udp_socket=?, tcp_socket=? WHERE name = ?",
+            (int(udp_socket), int(tcp_socket), name))
         Registered_Client_db.commit()
         return ["UPDATE-CONFIRMED"]
     else:
