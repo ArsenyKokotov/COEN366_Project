@@ -1,5 +1,4 @@
 import sys
-import mysql.connector
 import sqlite3
 
 Registered_Client_db = sqlite3.connect('clientDB.db')

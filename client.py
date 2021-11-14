@@ -1,7 +1,4 @@
-# start() function for CLI usage information
-
 import socket
-import sys
 import threading
 import random
 import string
@@ -10,16 +7,115 @@ import os
 import argparse
 import time
 
-#PORT_UDP = 5060
-#PORT_TCP = 5070
-#client_directory = 'client_file_storage/'
-#client_name = 'no_name'
+# Usage:
+# To launch client CLI and peer listener
+# python client.py --udpport 5060 --tcpport 5070 --mode both --folder client_file_storage --name test1
+#
+# To launch only client CLI
+# python client.py --udpport 5060 --tcpport 5070 --mode client --folder client_file_storage --name test1
+#
+# To launch only peer listener
+# python client.py --udpport 5060 --tcpport 5070 --mode peer --folder client_file_storage --name test1
+#
+# and to specify your IP and database server IP to use in either mode: --host "127.0.0.1" --server_host "127.0.0.1"
+def start():
+    #global PORT_UDP, PORT_TCP, client_name, client_directory
 
-#HOST = socket.gethostbyname(socket.gethostname())
-#SERVER_HOST = socket.gethostbyname(socket.gethostname())
+    # parse arguments
+    # UDP port, TCP port, folder, mode (CLI or peer listener) for this client
+    parser = argparse.ArgumentParser(description='COEN366 Project Client')
+    parser.add_argument('--udpport', type=int, required=True)
+    parser.add_argument('--tcpport', type=int, required=True)
+    parser.add_argument('--folder', type=str, required=True)
+    parser.add_argument('--mode', type=str, choices=['client', 'peer', 'both'], required=True)
+    parser.add_argument('--name', type=str, required=True)
+    parser.add_argument('--host', type=str, required=False)
+    parser.add_argument('--server_host', type=str, required=False)
+    parser.add_argument('--server_udpport', type=int, required=False, default=5050)
+
+    args = parser.parse_args()
+    print('Arguments given: ', args)
+
+    port_udp = args.udpport
+    port_tcp = args.tcpport
+    client_directory = args.folder
+    mode = args.mode
+    client_name = args.name
+
+    # Our IP interface to bind on / use
+    if not args.host:
+        host = socket.gethostbyname(socket.gethostname())
+    else:
+        host = args.host
+
+    print("Client interface: ", host)
+
+    # Server IP address
+    if not args.server_host:
+        server_host = socket.gethostbyname(socket.gethostname())
+        print("No server_host param, assuming local server\nSERVER_HOST value: ", server_host)
+    else:
+        server_host = args.server_host
+        print("Server IP: ", server_host)
+
+    # Launch CLI environment
+    if (mode == 'client'):
+        UDPServerSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        UDPServerSocket.bind((host, port_udp))
+
+        # thread for client sending messages to server or another client as specified by user input
+        cli_thread = threading.Thread(target=CommandlineThread,
+                                      args=(UDPServerSocket, host, server_host, port_udp, port_tcp, client_directory, client_name),
+                                      daemon=True)
+        cli_thread.start()
+
+        # thread to listen for UDP messages from the server
+        server_listen_thread = threading.Thread(target=server_listener_thread, args=(UDPServerSocket,))
+        server_listen_thread.start()
+
+    # Launch listener for peer requests
+    elif (mode == 'peer'):
+        # thread to listen for TCP connections from peers
+        peer_listen_thread = threading.Thread(target=peer_listener_thread, args=(host, port_tcp, client_directory),
+                                              daemon=True)
+        peer_listen_thread.start()
+
+    elif (mode == 'both'):
+        UDPServerSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        UDPServerSocket.bind((host, port_udp))
+
+        # thread for client sending messages to server or another client as specified by user input
+        cli_thread = threading.Thread(target=CommandlineThread,
+                                      args=(UDPServerSocket, host, server_host, port_udp, port_tcp, client_directory, client_name),
+                                      daemon=True)
+        cli_thread.start()
+
+        # thread to listen for UDP messages from the server
+        server_listen_thread = threading.Thread(target=server_listener_thread, args=(UDPServerSocket,))
+        server_listen_thread.start()
+
+        # thread to listen for TCP connections from peers
+        peer_listen_thread = threading.Thread(target=peer_listener_thread, args=(host, port_tcp, client_directory),
+                                              daemon=True)
+        peer_listen_thread.start()
 
 
+    while True:
+        try:
+            time.sleep(1)
+        except (EOFError, KeyboardInterrupt):
+            # Crude, but means we can actually exit the program
+            # sys.exit does not work as it tries to cleanly release the resources - including the blocked sockets
+            # https://stackoverflow.com/a/49819404/9421977
+            os._exit(0)
 
+
+# Store configuration constants for the client and peer here
+class ClientConfig(object):
+    def __init(self):
+        pass
+
+    MAX_CHUNK_COUNT_LIMIT = 1000
 
 
 # generate a random string for RQ#
@@ -103,7 +199,7 @@ def server_request(UDPServerSocket, host, server_host, port_udp, port_tcp, clien
         while True:
             print("To stop adding files, write EXIT")
             file_name = input("Input name of txt file you want to add (e.g: example.txt) : ")
-            check = os.path.isfile(client_directory + file_name)
+            check = os.path.isfile(os.path.join(client_directory, file_name))
             if check:
                 file_list.append(file_name)
                 print("File " + file_name + " added to publish list")
@@ -121,7 +217,7 @@ def server_request(UDPServerSocket, host, server_host, port_udp, port_tcp, clien
         while True:
             print("To stop adding files, write EXIT")
             file_name = input("Input name of txt file you want to remove (e.g: example.txt) : ")
-            check = os.path.isfile(client_directory + file_name)
+            check = os.path.isfile(os.path.join(client_directory, file_name))
             if check:
                 file_list.append(file_name)
                 print("File " + file_name + " added to removal list")
@@ -140,14 +236,11 @@ def server_request(UDPServerSocket, host, server_host, port_udp, port_tcp, clien
         json_request['File-name'] = file_name
 
     msg = json.dumps(json_request)
-    UDPServerSocket.sendto(msg.encode(), (server_host, 5050))
+    UDPServerSocket.sendto(msg.encode(), (server_host, ClientConfig.SERVER_UDP_PORT))
 
 
 # want to send messages to specific client
-# TODO: Need access to peer information here so we can know how to resolve a peer name to IP+port
-#  may also need file list here (so we can get their IP/port and list the available files)?
-#  or we could do our own request to the DB server here?
-def peer_request(client_directory, client_name):
+def peer_request(client_directory, peer_name):
     download_message = {'service': 'DOWNLOAD', 'request_#': -1, 'filename': ''}
 
     # TODO get peer name and resolve it to IP/port instead of manually entering
@@ -159,10 +252,17 @@ def peer_request(client_directory, client_name):
 
     file = ask_for_file(target_file, peer_ip, port_tcp)
 
+    # Write the file to our storage directory
+    target_file_path = os.path.join(client_directory, target_file)
+    if(os.path.isfile(target_file_path)):
+        print('You already have a file called {f}, cannot save to your storage directory'.format(f=target_file))
+    else:
+        with open(target_file_path, 'w') as f:
+            f.write(file)
+
 
 def ask_for_file(ask_filename, peer_ip, port_tcp_peer):
     dl_req = {'service': 'DOWNLOAD', 'request_#': 1, 'filename': ask_filename}
-
 
     print('\n[TCP CLIENT] Connecting to server on port', peer_ip, port_tcp_peer)
     tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -174,6 +274,7 @@ def ask_for_file(ask_filename, peer_ip, port_tcp_peer):
 
     file_end = False
     chunks = []
+    count = 0
     while not file_end:
         result = receive_lengthprefix_json(tcp_socket)
         decoded = json.loads(result.decode(('utf-8')))
@@ -187,6 +288,11 @@ def ask_for_file(ask_filename, peer_ip, port_tcp_peer):
         else:
             print('[TCP CLIENT] Received invalid service from peer in chunk: ', decoded['service'])
             raise ValueError
+
+        count += 1
+        if(count > ClientConfig.MAX_CHUNK_COUNT_LIMIT):
+            print('[TCP CLIENT] File exceeded maximum chunk count of ', ClientConfig.MAX_CHUNK_COUNT_LIMIT)
+            raise RuntimeError
 
     reassembled = ''.join([x['Text'] for x in chunks])
     print('[TCP CLIENT] Reassembled file {f}: {r}'.format(f=chunks[-1]['filename'], r=reassembled))
@@ -403,106 +509,7 @@ def server_listener_thread(UDPServerSocket):
         msg2 = "[UDP Listen] Message:{}".format(message)
         print(msg1 + msg2)
 
-# Usage:
-# To launch client CLI and peer listener
-# python client.py --udpport 5060 --tcpport 5070 --mode both --folder client_file_storage --name test1
-#
-# To launch only client CLI
-# python client.py --udpport 5060 --tcpport 5070 --mode client --folder client_file_storage --name test1
-#
-# To launch only peer listener
-# python client.py --udpport 5060 --tcpport 5070 --mode peer --folder client_file_storage --name test1
-#
-# and to specify your IP and database server IP to use in either mode: --host "127.0.0.1" --server_host "127.0.0.1"
-def start():
-    #global PORT_UDP, PORT_TCP, client_name, client_directory
 
-    # parse arguments
-    # UDP port, TCP port, folder, mode (CLI or peer listener) for this client
-    parser = argparse.ArgumentParser(description='COEN366 Project Client')
-    parser.add_argument('--udpport', type=int, required=True)
-    parser.add_argument('--tcpport', type=int, required=True)
-    parser.add_argument('--folder', type=str, required=True)
-    parser.add_argument('--mode', type=str, choices=['client', 'peer', 'both'], required=True)
-    parser.add_argument('--name', type=str, required=True)
-    parser.add_argument('--host', type=str, required=False)
-    parser.add_argument('--server_host', type=str, required=False)
-
-    args = parser.parse_args()
-    print('Arguments given: ', args)
-
-    port_udp = args.udpport
-    port_tcp = args.tcpport
-    client_directory = args.folder
-    mode = args.mode
-    client_name = args.name
-
-    # Our IP interface to bind on / use
-    if not args.host:
-        host = socket.gethostbyname(socket.gethostname())
-    else:
-        host = args.host
-
-    print("Client interface: ", host)
-
-    # Server IP address
-    if not args.server_host:
-        server_host = socket.gethostbyname(socket.gethostname())
-        print("No server_host param, assuming local server\nSERVER_HOST value: ", server_host)
-    else:
-        server_host = args.server_host
-        print("Server IP: ", server_host)
-
-    # Launch CLI environment
-    if (mode == 'client'):
-        UDPServerSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        UDPServerSocket.bind((host, port_udp))
-
-        # thread for client sending messages to server or another client as specified by user input
-        cli_thread = threading.Thread(target=CommandlineThread,
-                                      args=(UDPServerSocket, host, server_host, port_udp, port_tcp, client_directory, client_name),
-                                      daemon=True)
-        cli_thread.start()
-
-        # thread to listen for UDP messages from the server
-        server_listen_thread = threading.Thread(target=server_listener_thread, args=(UDPServerSocket,))
-        server_listen_thread.start()
-
-    # Launch listener for peer requests
-    elif (mode == 'peer'):
-        # thread to listen for TCP connections from peers
-        peer_listen_thread = threading.Thread(target=peer_listener_thread, args=(host, port_tcp, client_directory),
-                                              daemon=True)
-        peer_listen_thread.start()
-
-    elif (mode == 'both'):
-        UDPServerSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        UDPServerSocket.bind((host, port_udp))
-
-        # thread for client sending messages to server or another client as specified by user input
-        cli_thread = threading.Thread(target=CommandlineThread,
-                                      args=(UDPServerSocket, host, server_host, port_udp, port_tcp, client_directory, client_name),
-                                      daemon=True)
-        cli_thread.start()
-
-        # thread to listen for UDP messages from the server
-        server_listen_thread = threading.Thread(target=server_listener_thread, args=(UDPServerSocket,))
-        server_listen_thread.start()
-
-        # thread to listen for TCP connections from peers
-        peer_listen_thread = threading.Thread(target=peer_listener_thread, args=(host, port_tcp, client_directory),
-                                              daemon=True)
-        peer_listen_thread.start()
-
-
-    while True:
-        try:
-            time.sleep(1)
-        except (EOFError, KeyboardInterrupt):
-            # Crude, but means we can actually exit the program
-            # sys.exit does not work as it tries to cleanly release the resources - including the blocked sockets
-            # https://stackoverflow.com/a/49819404/9421977
-            os._exit(0)
 
 
 # Only run the start function if the script is being run directly (allows tests to import this file)
