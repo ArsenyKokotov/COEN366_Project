@@ -31,7 +31,7 @@ def registration(message, address):
 
 
 def derigistration(message):
-    dh.derigister(message['name'])
+    dh.deregister(message['name'])
    
 
 def update_contact(message, address):

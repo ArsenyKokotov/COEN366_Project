@@ -58,6 +58,9 @@ def start():
         server_host = args.server_host
         print("Server IP: ", server_host)
 
+    # Server UDP port
+    server_udpport = args.server_udpport
+
     # Launch CLI environment
     if (mode == 'client'):
         UDPServerSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -65,7 +68,7 @@ def start():
 
         # thread for client sending messages to server or another client as specified by user input
         cli_thread = threading.Thread(target=CommandlineThread,
-                                      args=(UDPServerSocket, host, server_host, port_udp, port_tcp, client_directory, client_name),
+                                      args=(UDPServerSocket, host, server_host, server_udpport, port_udp, port_tcp, client_directory, client_name),
                                       daemon=True)
         cli_thread.start()
 
@@ -86,7 +89,7 @@ def start():
 
         # thread for client sending messages to server or another client as specified by user input
         cli_thread = threading.Thread(target=CommandlineThread,
-                                      args=(UDPServerSocket, host, server_host, port_udp, port_tcp, client_directory, client_name),
+                                      args=(UDPServerSocket, host, server_host, server_udpport, port_udp, port_tcp, client_directory, client_name),
                                       daemon=True)
         cli_thread.start()
 
@@ -124,7 +127,7 @@ def randStr(chars=string.ascii_uppercase + string.digits, N=10):
 
 # CLI input handler
 # Make a request to server using UDP
-def server_request(UDPServerSocket, host, server_host, port_udp, port_tcp, client_directory, client_name):
+def server_request(UDPServerSocket, host, server_host, server_port_udp, port_udp, port_tcp, client_directory, client_name):
     # communication with server
     json_request = {}
 
@@ -236,7 +239,7 @@ def server_request(UDPServerSocket, host, server_host, port_udp, port_tcp, clien
         json_request['File-name'] = file_name
 
     msg = json.dumps(json_request)
-    UDPServerSocket.sendto(msg.encode(), (server_host, ClientConfig.SERVER_UDP_PORT))
+    UDPServerSocket.sendto(msg.encode(), (server_host, server_port_udp))
 
 
 # want to send messages to specific client
@@ -302,12 +305,12 @@ def ask_for_file(ask_filename, peer_ip, port_tcp_peer):
     return reassembled
 
 
-def CommandlineThread(UDPServerSocket, host, server_host, port_udp, port_tcp, client_directory, client_name):
+def CommandlineThread(UDPServerSocket, host, server_host, server_port_udp, port_udp, port_tcp, client_directory, client_name):
     while True:
         try:
             identity = input("Enter SERVER or PEER depending on who you want to contact: ")
             if identity == "SERVER":
-                server_request(UDPServerSocket, host, server_host, port_udp, port_tcp, client_directory, client_name)
+                server_request(UDPServerSocket, host, server_host, server_port_udp, port_udp, port_tcp, client_directory, client_name)
                 #break
             elif identity == "PEER":
                 peer_request(client_directory, client_name)
@@ -363,7 +366,7 @@ def peer_connection_handler(tcp_conn, addr, client_directory):
 
     #data = conn.recv(1024)
     data = receive_lengthprefix_json(tcp_conn)
-    print('[PEER][TCP Listen] received request: ', data, addr)
+    print('\n[PEER][TCP Listen] received request: ', data, addr)
 
     # Parse the request
     try:
@@ -505,7 +508,7 @@ def server_listener_thread(UDPServerSocket):
         bytesAddressPair = UDPServerSocket.recvfrom(1024)  # message from server
         message = bytesAddressPair[0]
         address = bytesAddressPair[1]
-        msg1 = "[UDP Listen] From:{}".format(address)
+        msg1 = "\n[UDP Listen] From:{}".format(address)
         msg2 = "[UDP Listen] Message:{}".format(message)
         print(msg1 + msg2)
 
