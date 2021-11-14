@@ -1,11 +1,12 @@
+import os
 import socket
 import threading
 import json
 import database_handler as dh
 
 
-PORT = 5050
-HOST = socket.gethostbyname(socket.gethostname())
+PORT = 5051
+HOST = '127.0.0.1'
 UDPServerSocket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 UDPServerSocket.bind((HOST, PORT))
 
@@ -30,7 +31,7 @@ def registration(message, address):
 
 
 def derigistration(message):
-    dh.derigister(message['name'])
+    dh.deregister(message['name'])
    
 
 def update_contact(message, address):
@@ -202,5 +203,6 @@ def start():
         thread.start()
         print(f"[ACTIVE CONNECTIONS] {threading.active_count()-1}" )
 
-print("Server is strarting ,,,")
+
+print("Server is starting...")
 start()
