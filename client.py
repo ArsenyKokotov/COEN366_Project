@@ -18,6 +18,11 @@ import time
 # python client.py --udpport 5060 --tcpport 5070 --mode peer --folder client_file_storage --name test1
 #
 # and to specify your IP and database server IP to use in either mode: --host "127.0.0.1" --server_host "127.0.0.1"
+# specify server UDP port with --server_udpport 5051
+#
+# Example usages
+# python client.py --udpport 5054 --tcpport 5070 --mode both --folder client_file_storage --name test1 --host "127.0.0.1" --server_host "127.0.0.1" --server_udpport 5050
+# python client.py --udpport 5061 --tcpport 5071 --mode both --folder client2 --name test1 --host "127.0.0.1" --server_host "127.0.0.1" --server_udpport 5050
 def start():
     #global PORT_UDP, PORT_TCP, client_name, client_directory
 
@@ -258,9 +263,10 @@ def peer_request(client_directory, peer_name):
     # Write the file to our storage directory
     target_file_path = os.path.join(client_directory, target_file)
     if(os.path.isfile(target_file_path)):
-        print('You already have a file called {f}, cannot save to your storage directory'.format(f=target_file))
+        print('[CLIENT] You already have a file called {f}, cannot save to your storage directory'.format(f=target_file))
     else:
         with open(target_file_path, 'w') as f:
+            print('[CLIENT] Writing downloaded file to', target_file_path)
             f.write(file)
 
 
