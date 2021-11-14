@@ -12,7 +12,7 @@ mycursor_files = Files_db.cursor()
 def check_client(name, ip_address, udp_socket, tcp_socket):
     # return valid error message if client is not good
     # return ok is client is good
-    if (name.isalnum()) and ip_address.isascii() and udp_socket.isnumeric() and tcp_socket.isnumeric():
+    if (name.isalnum()) and ip_address.isascii() and str(udp_socket).isnumeric() and str(tcp_socket).isnumeric():
         print("Client format is VALID")
         return True
     else:
