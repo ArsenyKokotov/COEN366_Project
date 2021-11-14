@@ -1,9 +1,7 @@
-import sys
-import mysql.connector
 import sqlite3
 
-Registered_Client_db = sqlite3.connect('clientDB.db')
-Files_db = sqlite3.connect('filesDB.db')
+Registered_Client_db = sqlite3.connect('clientDB.db', check_same_thread=False)
+Files_db = sqlite3.connect('filesDB.db', check_same_thread=False)
 
 # field1: name of client field2: file name
 
