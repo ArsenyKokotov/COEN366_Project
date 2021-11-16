@@ -35,8 +35,8 @@ def start():
     parser.add_argument('--mode', type=str, choices=['client', 'peer', 'both'], required=True)
     parser.add_argument('--name', type=str, required=True)
     parser.add_argument('--host', type=str, required=False)
-    parser.add_argument('--server_host', type=str, required=False)
-    parser.add_argument('--server_udpport', type=int, required=False, default=5050)
+    parser.add_argument('--server_host', type=str, required=False)  #add https://www.ipchicken.com/ output from server computer
+    parser.add_argument('--server_udpport', type=int, required=False, default=5051) #change it to the one on the server.py
 
     args = parser.parse_args()
     print('Arguments given: ', args)
