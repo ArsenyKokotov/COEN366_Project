@@ -3,10 +3,19 @@ import socket
 import threading
 import json
 import database_handler as dh
+import argparse
 
+parser = argparse.ArgumentParser(description='COEN366 Project Client')
+parser.add_argument('--server_udpport', type=int, required=True)
+parser.add_argument('--server_host', type=str, required=True)
 
-PORT = 5051
-HOST = '127.0.0.1'
+args = parser.parse_args()
+
+HOST = args.server_host
+PORT = args.server_udpport
+
+#PORT = 5051
+#HOST = '172.30.105.221'
 UDPServerSocket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 UDPServerSocket.bind((HOST, PORT))
 
