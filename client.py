@@ -36,7 +36,7 @@ def start():
     parser.add_argument('--name', type=str, required=True)
     parser.add_argument('--host', type=str, required=False)
     parser.add_argument('--server_host', type=str, required=False)
-    parser.add_argument('--server_udpport', type=int, required=False, default=5050)
+    parser.add_argument('--server_udpport', type=int, required=False, default=5051)
 
     args = parser.parse_args()
     print('Arguments given: ', args)
