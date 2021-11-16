@@ -6,7 +6,7 @@ import database_handler as dh
 
 
 PORT = 5051
-HOST = '127.0.0.1'
+HOST = '127.0.0.1' #change IP to output of https://www.ipchicken.com/
 UDPServerSocket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 UDPServerSocket.bind((HOST, PORT))
 
