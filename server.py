@@ -7,6 +7,7 @@ import argparse
 
 parser = argparse.ArgumentParser(description='COEN366 Project Client')
 parser.add_argument('--server_udpport', type=int, required=True)
+# Check ipconfig (using 'what is my ip' is fine for ENCS lab PCs as they have public IPs)
 parser.add_argument('--server_host', type=str, required=True)
 
 args = parser.parse_args()
