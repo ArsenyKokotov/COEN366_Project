@@ -69,7 +69,7 @@ def publish_files(name, list_of_files):
     # insert each file in the list and name into file db
     # if all is well, return PUBLISHED
     # if name does not exist or something else go bad, return PUBLISH-DENIED and REASON
-    list_of_files = [list_of_files]
+    # list_of_files = [list_of_files]
     alreadyExistCheck = mycursor_client.execute("SELECT * FROM clientDB WHERE name=?", [name])
     if len(list(alreadyExistCheck)) >= 1:
         for item in list_of_files:
