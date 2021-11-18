@@ -161,6 +161,7 @@ def server_request(UDPServerSocket, host, server_host, server_port_udp, port_udp
         json_request['name'] = name
         
         while True:
+            # TODO: Don't actually need to send new IP in body. Sending the request is enough.
             q=input("Do you want to change IP address (Y/N)?: ")
             if q == "Y":
                 json_request['IP'] = input("Input new IP address: ")
