@@ -275,6 +275,7 @@ def ask_for_file(ask_filename, peer_ip, port_tcp_peer):
 
     print('\n[TCP CLIENT] Connecting to server on port', peer_ip, port_tcp_peer)
     tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    tcp_socket.settimeout(5)  # set 5s timeout
     tcp_socket.connect((peer_ip, port_tcp_peer))
     print('[TCP CLIENT] TCP connection: ', tcp_socket)
 
@@ -294,6 +295,9 @@ def ask_for_file(ask_filename, peer_ip, port_tcp_peer):
         elif(decoded['service'] == 'FILE'):
             # loop around and get next chunk
             pass
+        elif(decoded['service'] == 'DOWNLOAD-ERROR'):
+            print('[TCP CLIENT] Received DOWNLOAD-ERROR')
+            raise RuntimeError
         else:
             print('[TCP CLIENT] Received invalid service from peer in chunk: ', decoded['service'])
             raise ValueError

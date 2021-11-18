@@ -23,7 +23,9 @@ UDPServerSocket.bind((HOST, PORT))
 #TASK 1
 def registration(message, address):
     
-    response = dh.register_client(message['name'], message['IP'], message['UDP_socket'], message['TCP_socket'])
+    #response = dh.register_client(message['name'], message['IP'], message['UDP_socket'], message['TCP_socket'])
+    # We use the actual address the client used to send the datagram as the DB address, not the address in the message
+    response = dh.register_client(message['name'], address[0], message['UDP_socket'], message['TCP_socket'])
 
     reply={}
 
@@ -46,7 +48,7 @@ def derigistration(message):
 
 def update_contact(message, address):
     
-    response = dh.update_client(message['name'], message['IP'], message['UDP_socket'], message['TCP_socket'])
+    response = dh.update_client(message['name'], address[0], message['UDP_socket'], message['TCP_socket'])
 
     reply={}
 
@@ -54,7 +56,7 @@ def update_contact(message, address):
         reply['service']=response[0]
         reply['request_#']=message['request_#']
         reply['name']=message['name']
-        reply['IP']=message['IP']
+        reply['IP']=address[0]
         reply['UDP_socket']=message['UDP_socket']
         reply['TCP_socket']=message['TCP_socket']
     else:
@@ -167,17 +169,19 @@ def search_file(message, address):
     UDPServerSocket.sendto(msg.encode(), address) 
 
 
-def handle_client(message, address):
+def handle_client(message, address, port):
 
-    print("[NEW CONNECTION]" + address + " connected.")
+    print("[NEW CONNECTION] " + str(address) + ':' + str(port) + " connected.")
     print("Received message: " + message)
-    
+
     message_json=json.loads(message[2:-1])
     service_type=message_json['service']
 
-    end = address.find(",")
-    CLIENT_HOST=address[2:end-1]
-    CLIENT_PORT=address[end+1:-1]
+    #end = address.find(",")
+    #CLIENT_HOST=address[2:end-1]
+    #CLIENT_PORT=address[end+1:-1]
+    CLIENT_HOST = address
+    CLIENT_PORT = port
     addr = (CLIENT_HOST, int(CLIENT_PORT)) 
 
     if service_type == "REGISTER":
@@ -206,10 +210,11 @@ def handle_client(message, address):
 def start():
     #UDPServerSocket.listen()
     while True:
-        bytesAddressPair = UDPServerSocket.recvfrom(1024)
-        message = format(bytesAddressPair[0])
-        address = format(bytesAddressPair[1])
-        thread = threading.Thread(target=handle_client, args=(message, address))
+        message_address_bytes_pair = UDPServerSocket.recvfrom(1024)
+        message = format(message_address_bytes_pair[0])
+        address = message_address_bytes_pair[1][0]
+        port = message_address_bytes_pair[1][1]
+        thread = threading.Thread(target=handle_client, args=(message, address, port))
         thread.start()
         print(f"[ACTIVE CONNECTIONS] {threading.active_count()-1}" )
 
