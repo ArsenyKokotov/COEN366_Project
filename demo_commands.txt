@@ -1,0 +1,24 @@
+# START SERVER
+- Get the server IP (for clients)
+- python server.py --server_udpport 5051 --server_host "<SERVER_LAN_IP>"
+- If having issues, change server_host to exactly the server IP
+
+
+
+# START CLIENT (both mode)
+- python client.py --udpport 5061 --tcpport 5071 --mode both --folder client2 --name test1 --host "0.0.0.0" --server_host "SERVER IP HERE" --server_udpport 5051
+- If bind issues: try changing host to LAN IP
+
+
+# START CLIENT (individual peer / client
+
+- In one terminal:
+- python client.py --udpport 5061 --tcpport 5071 --mode client --folder client2 --name test1 --host "0.0.0.0" --server_host "SERVER IP HERE" --server_udpport 5051
+
+- In another terminal:
+- python client.py --udpport 5061 --tcpport 5071 --mode peer --folder client2 --name test1 --host "0.0.0.0" --server_host "SERVER IP HERE" --server_udpport 5051
+
+
+
+# Demo notes
+- don't use 0.0.0.0 as a client host, the client can't tell the server what LAN IP it's communicating from

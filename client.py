@@ -21,8 +21,8 @@ import time
 # specify server UDP port with --server_udpport 5051
 #
 # Example usages
-# python client.py --udpport 5054 --tcpport 5070 --mode both --folder client_file_storage --name test1 --host "127.0.0.1" --server_host "127.0.0.1" --server_udpport 5050
-# python client.py --udpport 5061 --tcpport 5071 --mode both --folder client2 --name test1 --host "127.0.0.1" --server_host "127.0.0.1" --server_udpport 5050
+# python client.py --udpport 5054 --tcpport 5070 --mode both --folder client_file_storage --name test1 --host "127.0.0.1" --server_host "127.0.0.1" --server_udpport 5051
+# python client.py --udpport 5061 --tcpport 5071 --mode both --folder client2 --name test1 --host "127.0.0.1" --server_host "127.0.0.1" --server_udpport 5051
 def start():
     #global PORT_UDP, PORT_TCP, client_name, client_directory
 
@@ -35,8 +35,8 @@ def start():
     parser.add_argument('--mode', type=str, choices=['client', 'peer', 'both'], required=True)
     parser.add_argument('--name', type=str, required=True)
     parser.add_argument('--host', type=str, required=False)
-    parser.add_argument('--server_host', type=str, required=False)  #add https://www.ipchicken.com/ output from server computer
-    parser.add_argument('--server_udpport', type=int, required=False, default=5051) #change it to the one on the server.py
+    parser.add_argument('--server_host', type=str, required=False)
+    parser.add_argument('--server_udpport', type=int, required=False, default=5051)
 
     args = parser.parse_args()
     print('Arguments given: ', args)
@@ -161,6 +161,7 @@ def server_request(UDPServerSocket, host, server_host, server_port_udp, port_udp
         json_request['name'] = name
         
         while True:
+            # TODO: Don't actually need to send new IP in body. Sending the request is enough.
             q=input("Do you want to change IP address (Y/N)?: ")
             if q == "Y":
                 json_request['IP'] = input("Input new IP address: ")
@@ -275,6 +276,7 @@ def ask_for_file(ask_filename, peer_ip, port_tcp_peer):
 
     print('\n[TCP CLIENT] Connecting to server on port', peer_ip, port_tcp_peer)
     tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    tcp_socket.settimeout(5)  # set 5s timeout
     tcp_socket.connect((peer_ip, port_tcp_peer))
     print('[TCP CLIENT] TCP connection: ', tcp_socket)
 
@@ -294,6 +296,9 @@ def ask_for_file(ask_filename, peer_ip, port_tcp_peer):
         elif(decoded['service'] == 'FILE'):
             # loop around and get next chunk
             pass
+        elif(decoded['service'] == 'DOWNLOAD-ERROR'):
+            print('[TCP CLIENT] Received DOWNLOAD-ERROR')
+            raise RuntimeError
         else:
             print('[TCP CLIENT] Received invalid service from peer in chunk: ', decoded['service'])
             raise ValueError

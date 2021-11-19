@@ -25,7 +25,7 @@ def register_client(name, ip_address, udp_socket, tcp_socket):
     if check_client(name, ip_address, udp_socket, tcp_socket):
         alreadyExistCheck = mycursor_client.execute("SELECT * FROM clientDB WHERE name =?", [name], )
         if len(list(alreadyExistCheck)) >= 1:
-            print("Address already exists!")
+            print("Client name {c} already exists!".format(c=name))
             return ["REGISTER-DENIED", "CLIENT ALREADY EXISTS"]
         else:
             print("CLIENT CAN BE REGISTERED")
