@@ -512,6 +512,9 @@ def recvall(sock, n):
         data.extend(packet)
     return data
 
+# Used to show popups without blocking receiver thread
+def pop_up_thread(msg, title):
+    ctypes.windll.user32.MessageBoxW(0, msg, title, 1)
 
 # This thread listens for UDP datagrams from the server
 def server_listener_thread(UDPServerSocket):
@@ -522,6 +525,10 @@ def server_listener_thread(UDPServerSocket):
         address = bytesAddressPair[1]
         msg1 = "\n[UDP Listen] From:{}".format(address)
         msg2 = "[UDP Listen] Message:{}".format(message)
+
+        popup_thread = threading.Thread(target=pop_up_thread, args=(msg2, msg1))
+        popup_thread.start()
+
         ctypes.windll.user32.MessageBoxW(0, msg2, msg1 , 1)
         #print(msg1 + msg2)
 
