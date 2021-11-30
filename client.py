@@ -6,6 +6,7 @@ import json
 import os
 import argparse
 import time
+import ctypes
 
 # Usage:
 # To launch client CLI and peer listener
@@ -521,7 +522,8 @@ def server_listener_thread(UDPServerSocket):
         address = bytesAddressPair[1]
         msg1 = "\n[UDP Listen] From:{}".format(address)
         msg2 = "[UDP Listen] Message:{}".format(message)
-        print(msg1 + msg2)
+        ctypes.windll.user32.MessageBoxW(0, msg2, msg1 , 1)
+        #print(msg1 + msg2)
 
 
 
