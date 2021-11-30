@@ -528,8 +528,6 @@ def server_listener_thread(UDPServerSocket):
 
         popup_thread = threading.Thread(target=pop_up_thread, args=(msg2, msg1))
         popup_thread.start()
-
-        ctypes.windll.user32.MessageBoxW(0, msg2, msg1 , 1)
         #print(msg1 + msg2)
 
 
