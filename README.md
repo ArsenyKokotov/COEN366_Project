@@ -38,7 +38,7 @@ Two databases:
 <br>
 <b> DATABASE CLIENT </b>
 <br>
-Single database that contains files. Could just be a folder with text documents, but we have to figure out how to put text docs inside that folder such that it automatically sends all the required messages to server.
+Single database that contains files. Folder with text documents.
 
 <br>
 <br>
@@ -66,16 +66,15 @@ Single database that contains files. Could just be a folder with text documents,
 <br>
 <br>
 <b>Task 3:</b> <u>Retrieving information from the server:</u>
-<br> Basically searching for info about clients and files (do they exist or not), no file transfer in this step
+<br> Searching for info about clients and files (do they exist or not), no file transfer in this step
 <br>
 
 <br>
 <b>Task 4:</b> <u>File transfer between peers:</u>
-<br> If you know file and you knwo user who have this file, set up TCP connection and transfer that file in chinks of 200 characters. Will need a specific function to do that, cannot just use sendall(). So we need to describe a transfer protocol ourselves (easier than it sounds actually). 
+<br> If you know file and you knwo user who have this file, set up TCP connection and transfer that file in chinks of 200 characters.
 <br>
 <br>
-<b> Task 5: Making a GUI </b>
-<br> Only if we want to. 
+ 
 
 
  
